@@ -2,7 +2,6 @@
   "buildCommand": "bun run build",
   "outputDirectory": "dist",
   "installCommand": "bun install",
-  "nodeVersion": "22.x",
   "framework": "tanstack-start",
   "cleanUrls": true,
   "trailingSlash": false,
