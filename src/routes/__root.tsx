@@ -11,27 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { NotFound } from "@/components/errors/NotFound";
 
-function NotFoundComponent() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+function RootNotFoundComponent() {
+  return <NotFound />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -42,31 +25,58 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 px-4">
+      {/* Decorative gradient blur */}
+      <div className="absolute inset-0 -top-40 h-80 bg-gradient-to-b from-destructive/8 to-transparent blur-3xl" />
+
+      <div className="relative z-10 max-w-md text-center">
+        <div className="mb-8">
+          <div className="font-display text-5xl font-black tracking-tighter text-foreground">
+            ⚠️
+          </div>
+          <p className="mt-2 text-xs font-bold uppercase tracking-widest text-destructive">
+            Something went wrong
+          </p>
+        </div>
+
+        <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          Oops! An error occurred
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="mt-4 text-lg text-muted-foreground">
+          We encountered an unexpected problem. Please try again or return to the home page.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+
+        {/* Error Details (only in development) */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-8 rounded-lg bg-destructive/10 p-4 text-left">
+            <p className="text-xs font-mono text-destructive">{error.message}</p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="rounded-full bg-primary px-8 py-3 text-white font-semibold shadow-xl shadow-primary/30 transition-all hover:shadow-2xl hover:-translate-y-1"
           >
-            Try again
+            Try Again
           </button>
+
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="rounded-full border-2 border-foreground/20 bg-background px-8 py-3 font-semibold text-foreground transition-all hover:border-primary hover:bg-primary/5"
           >
-            Go home
+            Go Home
           </a>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="absolute bottom-6 text-center text-xs text-muted-foreground">
+        <p>© 2026 Dr. Farhan Badshah</p>
       </div>
     </div>
   );
@@ -101,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   shellComponent: RootShell,
   component: RootComponent,
-  notFoundComponent: NotFoundComponent,
+  notFoundComponent: RootNotFoundComponent,
   errorComponent: ErrorComponent,
 });
 
