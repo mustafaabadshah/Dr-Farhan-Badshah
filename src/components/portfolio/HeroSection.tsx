@@ -7,11 +7,11 @@ export function HeroSection() {
     <section
       id="top"
       aria-labelledby="hero-heading"
-      className="relative scroll-mt-20 overflow-hidden bg-background pt-0"
+      className="relative overflow-hidden bg-background pt-8 pb-16 md:pt-16 md:pb-24"
     >
       <div className="absolute inset-x-0 -top-40 h-80 bg-gradient-to-b from-primary/8 to-transparent blur-3xl" />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-24 sm:px-6 md:grid-cols-[1.3fr_1fr] md:py-32 lg:py-40">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 md:grid-cols-2">
         <div className="order-2 flex flex-col justify-center md:order-1">
           <div className="mb-6 inline-flex w-fit items-center gap-2.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 backdrop-blur-sm">
             <MapPin size={16} className="text-primary" /> Islamabad, Pakistan
@@ -19,7 +19,7 @@ export function HeroSection() {
 
           <h1
             id="hero-heading"
-            className="font-display text-5xl font-black leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl"
+            className="font-display text-4xl font-bold leading-none tracking-tight text-foreground md:text-5xl lg:text-6xl"
           >
             <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
               {HERO.name}
@@ -30,11 +30,11 @@ export function HeroSection() {
             {HERO.title}
           </p>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl">
             {HERO.subtitle}
           </p>
 
-          <div className="mt-12 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap gap-4">
             <Button
               asChild
               size="lg"
@@ -74,12 +74,7 @@ export function HeroSection() {
           <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-tr from-primary/15 via-accent/10 to-primary-glow/15 blur-3xl" />
           <div className="absolute -right-4 -top-4 hidden h-28 w-28 rounded-3xl border border-primary/20 bg-white/40 backdrop-blur-md md:block" />
           <div className="absolute -bottom-4 -left-4 hidden h-20 w-20 rounded-2xl border border-accent/20 bg-white/40 backdrop-blur-md md:block" />
-          <div
-            className="relative aspect-square overflow-hidden rounded-3xl border-2 border-white/60 bg-white shadow-2xl shadow-primary/25 ring-1 ring-primary/10"
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(66, 133, 244, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
-            }}
-          >
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
             <img
               src="/doc-farhan.png"
               alt={`Headshot of ${HERO.name}`}
