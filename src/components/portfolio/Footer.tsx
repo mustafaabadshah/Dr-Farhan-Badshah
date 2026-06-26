@@ -1,4 +1,5 @@
-import { Mail, MapPin, MessageCircle, Phone, Facebook, Instagram } from "lucide-react";
+import { Mail, MapPin, Phone, Facebook, Instagram } from "lucide-react";
+import { FaWhatsapp } from 'react-icons/fa';
 import { Button } from "@/components/ui/button";
 import { CONTACT, HERO } from "@/data/portfolioData";
 
@@ -28,19 +29,17 @@ export function Footer() {
             <p className="mt-6 max-w-md text-base leading-relaxed text-white/75">
               Message on WhatsApp for the fastest response — typical reply within a few hours. We're here to support your journey.
             </p>
-
-            <Button
-              asChild
-              size="lg"
-              className="mt-10 group relative overflow-hidden rounded-full bg-[#25D366] px-10 py-7 text-lg font-bold text-white shadow-2xl shadow-[#25D366]/50 transition-all duration-300 hover:-translate-y-1 hover:bg-[#1ebe5d] hover:shadow-2xl"
+            <a href={CONTACT.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-10 group relative inline-flex items-center gap-3 overflow-hidden rounded-full bg-[#25D366] px-8 py-4 text-lg font-bold text-white shadow-2xl shadow-[#25D366]/50 transition-all duration-300 hover:-translate-y-1 hover:bg-[#1ebe5d] hover:shadow-md"
             >
-              <a href={CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
-                <span className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+              <span className="absolute inset-0 flex h-full w-full justify-center transform-[skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:transform-[skew(-12deg)_translateX(100%)]">
                   <span className="relative h-full w-8 bg-white/20" />
                 </span>
-                <MessageCircle className="mr-3" size={22} /> Chat on WhatsApp
-              </a>
-            </Button>
+              <FaWhatsapp className="h-7 w-7 shrink-0" />
+              Chat on WhatsApp
+            </a>
           </div>
 
           <div className="space-y-6">

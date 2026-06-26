@@ -9,8 +9,8 @@ const WHATSAPP_MESSAGE =
 export const CONTACT = {
   phone: "+92 332 9579368",
   phoneHref: "tel:+923329579368",
-  email: "hello@drfarhanbadshah.com",
-  emailHref: "mailto:hello@drfarhanbadshah.com",
+  email: "farhanbadshah30@gmail.com",
+  emailHref: "mailto:farhanbadshah30@gmail.com",
   city: "Islamabad, Pakistan",
   whatsappUrl: `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     WHATSAPP_MESSAGE,
@@ -35,8 +35,8 @@ export const HERO = {
   subtitle:
     "Evidence-based physiotherapy and rehabilitation care in Islamabad — restoring movement, relieving pain, and returning you to the activities you love.",
   ctaLabel: "Book Appointment",
-  oladocUrl: "https://oladoc.com",
-  marhamUrl: "https://marham.pk",
+  oladocUrl: "https://oladoc.com/pakistan/islamabad/dr/physiotherapist/farhan-badshah/1931854",
+  marhamUrl: "https://www.marham.pk/doctors/islamabad/physiotherapist/dr-farhan-badshah",
 } as const;
 
 export const LICENSES = [
