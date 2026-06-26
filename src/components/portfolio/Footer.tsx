@@ -127,7 +127,6 @@ export function Footer() {
             </div>
           </div>
         </div>
-
         <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-8 text-xs text-white/50 sm:flex-row sm:items-center">
           <span>
             © {new Date().getFullYear()} {HERO.name}. All rights reserved.
