@@ -1,17 +1,5 @@
 {
-  "buildCommand": "bun run build",
-  "outputDirectory": "dist",
-  "installCommand": "bun install",
-  "framework": "tanstack-start",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "env": {
-    "NODE_ENV": "production"
-  },
   "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
