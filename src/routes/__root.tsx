@@ -89,23 +89,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Dr. Farhan Badshah — Physiotherapist in Islamabad" },
+      { title: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Rehab Specialist" },
       {
         name: "description",
         content:
-          "Evidence-based physiotherapy and rehabilitation in Islamabad by Dr. Farhan Badshah — DPT, internationally licensed (CORU, SCFHS, AHPC).",
+          "Dr. Farhan Badshah (DPT, MS Sports Rehab) is an internationally licensed Consultant Physiotherapist in Islamabad (CORU, SCFHS, AHPC). Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
+      },
+      {
+        name: "keywords",
+        content:
+          "physiotherapist Islamabad, best physiotherapist in Islamabad, Dr Farhan Badshah, sports injury rehabilitation Islamabad, Shahida Khaliq Hospital physiotherapist, Ali Medical Center physiotherapist, General Practice Hospital physiotherapist, back pain specialist Islamabad, sciatica treatment Islamabad, physical therapy Pakistan",
       },
       { name: "author", content: "Dr. Farhan Badshah" },
-      { property: "og:title", content: "Dr. Farhan Badshah — Physiotherapist in Islamabad" },
+      { name: "geo.region", content: "PK-IS" },
+      { name: "geo.placename", content: "Islamabad" },
+      { name: "geo.position", content: "33.7077;73.0498" },
+      { name: "ICBM", content: "33.7077, 73.0498" },
+      { property: "og:title", content: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad" },
       {
         property: "og:description",
         content:
-          "Evidence-based physiotherapy and rehabilitation care in Islamabad — restoring movement and relieving pain.",
+          "Evidence-based physiotherapy and rehabilitation in Islamabad. Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
       },
-      { property: "og:type", content: "website" },
+      { property: "og:type", content: "profile" },
+      { property: "og:url", content: "https://drfarhanbadshah.com/" },
       { property: "og:image", content: "/doc-farhan.png" },
+      { property: "og:site_name", content: "Dr. Farhan Badshah Physiotherapy" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@thephysioclinic03" },
+      { name: "twitter:creator", content: "@thephysioclinic03" },
     ],
     links: [
       {

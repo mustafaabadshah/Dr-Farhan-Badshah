@@ -1,0 +1,43 @@
+# Robots.txt for Dr. Farhan Badshah — Physiotherapist in Islamabad
+# Website: https://drfarhanbadshah.com/
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# AI Search Engine & Generative Overviews Crawlers (AIO / GEO)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+
+# Sitemap & LLM summary
+Sitemap: https://drfarhanbadshah.com/sitemap.xml

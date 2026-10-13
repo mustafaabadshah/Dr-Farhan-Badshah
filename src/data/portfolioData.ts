@@ -66,17 +66,17 @@ export const QUALIFICATIONS = [
   {
     title: "Doctor of Physiotherapy (DPT)",
     institution: "AUST",
-    year: "Completed",
+    year: "",
   },
   {
     title: "MS Sports Physiotherapy",
     institution: "GTU",
-    year: "Ongoing",
+    year: "",
   },
   {
     title: "Post Graduate Diploma (PGD) in Pain Management",
     institution: "ICMRS",
-    year: "Completed",
+    year: "",
   },
 ] as const;
 
@@ -178,19 +178,19 @@ export const CLINICS = [
     name: "Ali Medical Center",
     address: "F-8 Markaz, Islamabad",
     hours: "9:00 AM – 2:00 PM",
-    mapsUrl: "https://maps.google.com/?q=F-8+Markaz+Islamabad",
+    mapsUrl: "https://maps.google.com/?q=Ali+Medical+Center+F-8+Islamabad",
+  },
+  {
+    name: "Shahida Khaliq Hospital",
+    address: "Plot No 14, Street No 22, G-8/4, Islamabad, 44000",
+    hours: "2:00 PM – 5:00 PM",
+    mapsUrl: "https://maps.google.com/?q=Shahida+Khaliq+Hospital+G-8/4+Islamabad",
   },
   {
     name: "General Practice Hospital",
     address: "New Blue Area, Pakland Tower 2, Islamabad",
-    hours: "2:00 PM – 6:00 PM",
+    hours: "5:00 PM – 8:00 PM",
     mapsUrl: "https://maps.google.com/?q=Pakland+Tower+2+Islamabad",
-  },
-  {
-    name: "Muhammad Medical Complex",
-    address: "G-8 Markaz, Islamabad",
-    hours: "6:00 PM – 8:00 PM",
-    mapsUrl: "https://maps.google.com/?q=G-8+Markaz+Islamabad",
   },
 ] as const;
 

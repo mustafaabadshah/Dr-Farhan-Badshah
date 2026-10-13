@@ -151,21 +151,21 @@ export interface CMSData {
 }
 
 const DEFAULT_SEO: SEOConfig = {
-  pageTitle: "Dr. Farhan Badshah — Physiotherapist in Islamabad | Rehabilitation Specialist",
+  pageTitle: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Rehab Specialist",
   metaDescription:
-    "Evidence-based physiotherapy and rehabilitation in Islamabad by Dr. Farhan Badshah — DPT, internationally licensed (CORU Ireland, SCFHS KSA, AHPC Pakistan). Sports injuries, musculoskeletal care, pain relief, and neurological rehabilitation.",
+    "Dr. Farhan Badshah (DPT, MS Sports Rehab) is an internationally licensed Consultant Physiotherapist in Islamabad (CORU Ireland, SCFHS KSA, AHPC Pakistan). Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
   keywords:
-    "physiotherapist Islamabad, Dr Farhan Badshah, sports injury rehabilitation Islamabad, back pain relief, sciatica treatment, stroke rehabilitation, physical therapy Pakistan, Ali Medical Center F-8",
+    "physiotherapist Islamabad, best physiotherapist in Islamabad, Dr Farhan Badshah, sports injury rehabilitation Islamabad, Shahida Khaliq Hospital physiotherapist, Ali Medical Center physiotherapist, General Practice Hospital physiotherapist, back pain specialist Islamabad, sciatica treatment Islamabad, stroke rehabilitation Islamabad, orthopedic physiotherapy Islamabad, physical therapist Pakistan, DPT Islamabad, pain management Islamabad",
   canonicalUrl: "https://drfarhanbadshah.com/",
   author: "Dr. Farhan Badshah",
-  ogTitle: "Dr. Farhan Badshah — Expert Physiotherapist & Rehab Specialist in Islamabad",
+  ogTitle: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Specialist",
   ogDescription:
-    "Restoring movement, relieving pain, and helping you return to life with evidence-based physiotherapy across Islamabad clinics.",
+    "Restoring movement, relieving pain, and return-to-sport rehabilitation across Islamabad. Consult Dr. Farhan at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), or GP Hospital (Blue Area).",
   ogImage: "/doc-farhan.png",
   twitterCard: "summary_large_image",
   twitterHandle: "@thephysioclinic03",
   medicalSpecialty: "Physiotherapy & Rehabilitation",
-  areaServed: "Islamabad & Rawalpindi",
+  areaServed: "Islamabad & Rawalpindi, Pakistan",
   robotsIndex: "index, follow",
 };
 
@@ -195,7 +195,7 @@ const DEFAULT_FAQS: FAQItem[] = [
     id: "faq-4",
     question: "Which clinics can I visit Dr. Farhan at in Islamabad?",
     answer:
-      "Dr. Farhan consults at Ali Medical Center (F-8 Markaz) from 9:00 AM – 2:00 PM, General Practice Hospital (Pakland Tower 2, New Blue Area) from 2:00 PM – 6:00 PM, and Muhammad Medical Complex (G-8 Markaz) from 6:00 PM – 8:00 PM.",
+      "Dr. Farhan consults at Ali Medical Center (F-8 Markaz) from 9:00 AM – 2:00 PM, Shahida Khaliq Hospital (Plot No 14, Street No 22, G-8/4) from 2:00 PM – 5:00 PM, and General Practice Hospital (Pakland Tower 2, New Blue Area) from 5:00 PM – 8:00 PM.",
     category: "Locations",
   },
   {
@@ -237,7 +237,7 @@ const DEFAULT_STATS: StatItem[] = [
     id: "stat-4",
     label: "Islamabad Clinics",
     value: "3 Locations",
-    description: "F-8 Markaz, New Blue Area, and G-8 Markaz",
+    description: "F-8 Markaz, G-8/4, and New Blue Area",
   },
 ];
 
@@ -279,7 +279,7 @@ const DEFAULT_CLINICS_ENRICHED: ClinicItem[] = [
     hours: DEFAULT_CLINICS[1].hours,
     mapsUrl: DEFAULT_CLINICS[1].mapsUrl,
     openHour: 14,
-    closeHour: 18,
+    closeHour: 17,
     days: "Monday – Saturday",
   },
   {
@@ -288,7 +288,7 @@ const DEFAULT_CLINICS_ENRICHED: ClinicItem[] = [
     address: DEFAULT_CLINICS[2].address,
     hours: DEFAULT_CLINICS[2].hours,
     mapsUrl: DEFAULT_CLINICS[2].mapsUrl,
-    openHour: 18,
+    openHour: 17,
     closeHour: 20,
     days: "Monday – Saturday",
   },
@@ -438,13 +438,55 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
           contact: { ...INITIAL_DATA.contact, ...(parsed?.contact || {}) },
           bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : INITIAL_DATA.bio,
           services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : INITIAL_DATA.services,
-          clinics: Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics,
-          qualifications: Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications,
+          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics).map((c: any) => {
+            if (c.name?.includes("Muhammad Medical") || c.name?.includes("Muhammad")) {
+              return {
+                ...c,
+                name: "Shahida Khaliq Hospital",
+                address: "Plot No 14, Street No 22, G-8/4, Islamabad, 44000",
+                hours: "2:00 PM – 5:00 PM",
+                mapsUrl: "https://maps.google.com/?q=Shahida+Khaliq+Hospital+G-8/4+Islamabad",
+                openHour: 14,
+                closeHour: 17,
+              };
+            }
+            if (c.name?.includes("General Practice")) {
+              return {
+                ...c,
+                hours: "5:00 PM – 8:00 PM",
+                openHour: 17,
+                closeHour: 20,
+              };
+            }
+            return c;
+          }),
+          qualifications: (Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications).map((q: any) => {
+            if (q.year && ["completed", "ongoing"].includes(q.year.trim().toLowerCase())) {
+              return { ...q, year: "" };
+            }
+            return q;
+          }),
           certifications: Array.isArray(parsed?.certifications) && parsed.certifications.length > 0 ? parsed.certifications : INITIAL_DATA.certifications,
           licenses: Array.isArray(parsed?.licenses) && parsed.licenses.length > 0 ? parsed.licenses : INITIAL_DATA.licenses,
           testimonials: Array.isArray(parsed?.testimonials) && parsed.testimonials.length > 0 ? parsed.testimonials : INITIAL_DATA.testimonials,
-          faqs: Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : INITIAL_DATA.faqs,
-          stats: Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : INITIAL_DATA.stats,
+          faqs: (Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : INITIAL_DATA.faqs).map((f: any) => {
+            if (f.answer?.includes("Muhammad Medical Complex")) {
+              return {
+                ...f,
+                answer: "Dr. Farhan consults at Ali Medical Center (F-8 Markaz) from 9:00 AM – 2:00 PM, Shahida Khaliq Hospital (Plot No 14, Street No 22, G-8/4) from 2:00 PM – 5:00 PM, and General Practice Hospital (Pakland Tower 2, New Blue Area) from 5:00 PM – 8:00 PM.",
+              };
+            }
+            return f;
+          }),
+          stats: (Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : INITIAL_DATA.stats).map((s: any) => {
+            if (s.description?.includes("G-8 Markaz")) {
+              return {
+                ...s,
+                description: "F-8 Markaz, G-8/4, and New Blue Area",
+              };
+            }
+            return s;
+          }),
           bookings: Array.isArray(parsed?.bookings) ? parsed.bookings : INITIAL_DATA.bookings,
         };
       }

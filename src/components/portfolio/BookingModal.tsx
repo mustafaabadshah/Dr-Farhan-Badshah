@@ -232,11 +232,11 @@ export function BookingModal({
                   <option value="Morning (09:00 AM – 02:00 PM)">
                     Morning (09:00 AM – 02:00 PM) - Ali Medical Center
                   </option>
-                  <option value="Afternoon (02:00 PM – 06:00 PM)">
-                    Afternoon (02:00 PM – 06:00 PM) - GP Hospital
+                  <option value="Afternoon (02:00 PM – 05:00 PM)">
+                    Afternoon (02:00 PM – 05:00 PM) - Shahida Khaliq Hospital
                   </option>
-                  <option value="Evening (06:00 PM – 08:00 PM)">
-                    Evening (06:00 PM – 08:00 PM) - Muhammad Medical
+                  <option value="Evening (05:00 PM – 08:00 PM)">
+                    Evening (05:00 PM – 08:00 PM) - General Practice Hospital
                   </option>
                 </select>
               </div>

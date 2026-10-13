@@ -79,24 +79,33 @@ export function AboutSection() {
 
               {/* Vertical Timeline */}
               <div className="border-l-2 border-primary/20 ml-3 space-y-8">
-                {qualifications.map((q) => (
-                  <div key={q.id || q.title} className="relative pl-8">
-                    <div className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-white bg-primary shadow-md shadow-primary/30" />
-                    <div className="rounded-2xl border-2 border-border/40 bg-white p-5 transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/15">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground">{q.title}</div>
-                          <div className="mt-1 text-sm text-muted-foreground">
-                            {q.institution}
+                {qualifications.map((q) => {
+                  const hasDisplayableYear =
+                    q.year &&
+                    !["completed", "ongoing"].includes(
+                      q.year.trim().toLowerCase()
+                    );
+                  return (
+                    <div key={q.id || q.title} className="relative pl-8">
+                      <div className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-white bg-primary shadow-md shadow-primary/30" />
+                      <div className="rounded-2xl border-2 border-border/40 bg-white p-5 transition-all hover:border-primary/40 hover:shadow-lg hover:shadow-primary/15">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-foreground">{q.title}</div>
+                            <div className="mt-1 text-sm text-muted-foreground">
+                              {q.institution}
+                            </div>
                           </div>
-                        </div>
-                        <div className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-bold text-primary whitespace-nowrap shrink-0">
-                          {q.year}
+                          {hasDisplayableYear && (
+                            <div className="rounded-lg bg-primary/10 px-3 py-1 text-sm font-bold text-primary whitespace-nowrap shrink-0">
+                              {q.year}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

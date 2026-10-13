@@ -141,7 +141,7 @@ function AdminDashboard() {
   const [qualificationForm, setQualificationForm] = useState({
     title: "",
     institution: "",
-    year: "Completed",
+    year: "",
   });
 
   // Certification Modal
@@ -350,7 +350,7 @@ function AdminDashboard() {
   // Qualification helpers
   const openNewQualification = () => {
     setEditingQualificationId(null);
-    setQualificationForm({ title: "", institution: "", year: "Completed" });
+    setQualificationForm({ title: "", institution: "", year: "" });
     setQualificationModalOpen(true);
   };
 
@@ -359,7 +359,7 @@ function AdminDashboard() {
     setQualificationForm({
       title: q.title || "",
       institution: q.institution || "",
-      year: q.year || "Completed",
+      year: q.year || "",
     });
     setQualificationModalOpen(true);
   };
@@ -1678,9 +1678,11 @@ function AdminDashboard() {
                       <div>
                         <div className="font-bold text-xs text-[#1d2327]">{q.title}</div>
                         <div className="text-xs text-[#50575e]">{q.institution}</div>
-                        <div className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                          {q.year}
-                        </div>
+                        {q.year && !["completed", "ongoing"].includes(q.year.trim().toLowerCase()) && (
+                          <div className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                            {q.year}
+                          </div>
+                        )}
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
                         <button
@@ -2530,13 +2532,13 @@ function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Status / Year</label>
+              <label className="text-xs font-bold">Graduation Year (Optional)</label>
               <Input
                 value={qualificationForm.year}
                 onChange={(e) =>
                   setQualificationForm({ ...qualificationForm, year: e.target.value })
                 }
-                placeholder="e.g. Completed, Ongoing, 2024"
+                placeholder="e.g. 2024 (Leave blank if not applicable)"
               />
             </div>
 
