@@ -1,7 +1,10 @@
 import { ShieldCheck } from "lucide-react";
-import { LICENSES } from "@/data/portfolioData";
+import { useCMS } from "@/lib/cms-store";
 
 export function TrustBar() {
+  const { data } = useCMS();
+  const { licenses } = data;
+
   return (
     <section
       aria-label="Professional licenses"
@@ -12,9 +15,9 @@ export function TrustBar() {
           Internationally Licensed
         </span>
         <span className="hidden h-8 w-px bg-border/60 md:block" />
-        {LICENSES.map((l) => (
+        {licenses.map((l) => (
           <div
-            key={l.code}
+            key={l.id || l.code}
             className="flex shrink-0 items-center gap-3 rounded-2xl px-2 py-1 transition-transform hover:-translate-y-0.5"
           >
             <ShieldCheck size={20} className="shrink-0 text-primary-glow" />

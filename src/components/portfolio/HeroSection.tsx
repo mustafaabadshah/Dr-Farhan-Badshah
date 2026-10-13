@@ -1,8 +1,15 @@
 import { ArrowRight, CalendarClock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CONTACT, HERO } from "@/data/portfolioData";
+import { useCMS } from "@/lib/cms-store";
 
-export function HeroSection() {
+interface HeroSectionProps {
+  onOpenBooking?: () => void;
+}
+
+export function HeroSection({ onOpenBooking }: HeroSectionProps) {
+  const { data } = useCMS();
+  const { hero, contact } = data;
+
   return (
     <section
       id="top"
@@ -14,7 +21,7 @@ export function HeroSection() {
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 md:grid-cols-2">
         <div className="order-2 flex flex-col justify-center md:order-1">
           <div className="mb-6 inline-flex w-fit items-center gap-2.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 backdrop-blur-sm">
-            <MapPin size={16} className="text-primary" /> Islamabad, Pakistan
+            <MapPin size={16} className="text-primary" /> {hero.locationBadge || "Islamabad, Pakistan"}
           </div>
 
           <h1
@@ -22,51 +29,66 @@ export function HeroSection() {
             className="font-display text-4xl font-bold leading-none tracking-tight text-foreground md:text-5xl lg:text-6xl"
           >
             <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
-              {HERO.name}
+              {hero.name}
             </span>
           </h1>
 
           <p className="mt-4 font-display text-lg font-semibold uppercase tracking-[0.15em] text-primary">
-            {HERO.title}
+            {hero.title}
           </p>
 
           <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl">
-            {HERO.subtitle}
+            {hero.subtitle}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="group relative overflow-hidden rounded-full bg-primary px-8 py-3 text-white shadow-xl shadow-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:scale-95"
-            >
-              <a href={CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
-                <CalendarClock className="mr-2 h-5 w-5" /> {HERO.ctaLabel}
+            {onOpenBooking ? (
+              <Button
+                onClick={onOpenBooking}
+                size="lg"
+                className="group relative overflow-hidden rounded-full bg-primary px-8 py-3 text-white shadow-xl shadow-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:scale-95"
+              >
+                <CalendarClock className="mr-2 h-5 w-5" /> {hero.ctaLabel || "Book Appointment"}
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </a>
-            </Button>
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="lg"
+                className="group relative overflow-hidden rounded-full bg-primary px-8 py-3 text-white shadow-xl shadow-primary/30 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:scale-95"
+              >
+                <a href={contact.whatsappUrl} target="_blank" rel="noreferrer">
+                  <CalendarClock className="mr-2 h-5 w-5" /> {hero.ctaLabel}
+                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </a>
+              </Button>
+            )}
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="rounded-full border-2 border-foreground/20 bg-background px-6 py-3 font-semibold text-foreground transition-all hover:border-primary hover:bg-primary/5"
-            >
-              <a href={HERO.oladocUrl} target="_blank" rel="noreferrer">
-                View on Oladoc
-              </a>
-            </Button>
+            {hero.oladocUrl && (
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-full border-2 border-foreground/20 bg-background px-6 py-3 font-semibold text-foreground transition-all hover:border-primary hover:bg-primary/5"
+              >
+                <a href={hero.oladocUrl} target="_blank" rel="noreferrer">
+                  View on Oladoc
+                </a>
+              </Button>
+            )}
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="rounded-full border-2 border-foreground/20 bg-background px-6 py-3 font-semibold text-foreground transition-all hover:border-primary hover:bg-primary/5"
-            >
-              <a href={HERO.marhamUrl} target="_blank" rel="noreferrer">
-                View on Marham
-              </a>
-            </Button>
+            {hero.marhamUrl && (
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-full border-2 border-foreground/20 bg-background px-6 py-3 font-semibold text-foreground transition-all hover:border-primary hover:bg-primary/5"
+              >
+                <a href={hero.marhamUrl} target="_blank" rel="noreferrer">
+                  View on Marham
+                </a>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -76,8 +98,8 @@ export function HeroSection() {
           <div className="absolute -bottom-4 -left-4 hidden h-20 w-20 rounded-2xl border border-accent/20 bg-white/40 backdrop-blur-md md:block" />
           <div className="relative aspect-square overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-xl">
             <img
-              src="/doc-farhan.png"
-              alt={`Headshot of ${HERO.name}`}
+              src={hero.avatarUrl || "/doc-farhan.png"}
+              alt={`Headshot of ${hero.name}`}
               className="h-full w-full object-cover object-top"
             />
           </div>

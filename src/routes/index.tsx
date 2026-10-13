@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Navigation } from "@/components/portfolio/Navigation";
 import { HeroSection } from "@/components/portfolio/HeroSection";
@@ -6,104 +7,118 @@ import { AboutSection } from "@/components/portfolio/AboutSection";
 import { ServicesGrid } from "@/components/portfolio/ServicesGrid";
 import { Locations } from "@/components/portfolio/Locations";
 import { Reviews } from "@/components/portfolio/Reviews";
+import { FaqSection } from "@/components/portfolio/FaqSection";
 import { Footer } from "@/components/portfolio/Footer";
-import {
-  CLINICS,
-  CONTACT,
-  HERO,
-  SERVICES,
-} from "@/data/portfolioData";
-
-const PAGE_TITLE =
-  "Dr. Farhan Badshah — Physiotherapist in Islamabad";
-const PAGE_DESCRIPTION =
-  "Evidence-based physiotherapy and rehabilitation in Islamabad by Dr. Farhan Badshah — DPT, internationally licensed (CORU, SCFHS, AHPC). Sports, MSK, neurological, and post-surgical care.";
-
-const personSchema = {
-  "@context": "https://schema.org",
-  "@type": "Person",
-  name: HERO.name,
-  jobTitle: HERO.title,
-  worksFor: { "@type": "Organization", name: "Dr. Farhan Badshah Physiotherapy" },
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Islamabad",
-    addressCountry: "PK",
-  },
-  telephone: CONTACT.phone,
-  email: CONTACT.email,
-  sameAs: [HERO.oladocUrl, HERO.marhamUrl],
-};
-
-const medicalBusinessSchema = {
-  "@context": "https://schema.org",
-  "@type": "MedicalBusiness",
-  name: `${HERO.name} — Physiotherapy`,
-  description: PAGE_DESCRIPTION,
-  medicalSpecialty: "Physiotherapy",
-  areaServed: "Islamabad",
-  telephone: CONTACT.phone,
-  email: CONTACT.email,
-  url: "/",
-  availableService: SERVICES.map((s) => ({
-    "@type": "MedicalTherapy",
-    name: s.title,
-    description: s.description,
-  })),
-  location: CLINICS.map((c) => ({
-    "@type": "Place",
-    name: c.name,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: c.address,
-      addressLocality: "Islamabad",
-      addressCountry: "PK",
-    },
-    hasMap: c.mapsUrl,
-  })),
-};
+import { BookingModal } from "@/components/portfolio/BookingModal";
+import { FloatingActionBar } from "@/components/portfolio/FloatingActionBar";
+import { useCMS } from "@/lib/cms-store";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: PAGE_TITLE },
-      { name: "description", content: PAGE_DESCRIPTION },
-      { property: "og:title", content: PAGE_TITLE },
-      { property: "og:description", content: PAGE_DESCRIPTION },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: PAGE_TITLE },
-      { name: "twitter:description", content: PAGE_DESCRIPTION },
-    ],
-    links: [{ rel: "canonical", href: "/" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify(personSchema),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify(medicalBusinessSchema),
-      },
-    ],
-  }),
   component: Index,
 });
 
 function Index() {
+  const { data } = useCMS();
+  const { hero, contact, services, clinics, seo } = data;
+
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [selectedClinic, setSelectedClinic] = useState<string | undefined>();
+  const [selectedService, setSelectedService] = useState<string | undefined>();
+
+  const handleOpenBooking = () => {
+    setSelectedClinic(undefined);
+    setSelectedService(undefined);
+    setBookingOpen(true);
+  };
+
+  const handleSelectClinic = (clinicName: string) => {
+    setSelectedClinic(clinicName);
+    setSelectedService(undefined);
+    setBookingOpen(true);
+  };
+
+  const handleSelectService = (serviceTitle: string) => {
+    setSelectedService(serviceTitle);
+    setSelectedClinic(undefined);
+    setBookingOpen(true);
+  };
+
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: hero.name,
+    jobTitle: hero.title,
+    worksFor: { "@type": "Organization", name: `${hero.name} Physiotherapy` },
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Islamabad",
+      addressCountry: "PK",
+    },
+    telephone: contact.phone,
+    email: contact.email,
+    sameAs: [hero.oladocUrl, hero.marhamUrl, contact.googleBusinessUrl].filter(Boolean),
+  };
+
+  const medicalBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    name: `${hero.name} — Physiotherapy & Rehabilitation`,
+    description: seo.metaDescription,
+    medicalSpecialty: seo.medicalSpecialty || "Physiotherapy",
+    areaServed: seo.areaServed || "Islamabad",
+    telephone: contact.phone,
+    email: contact.email,
+    url: seo.canonicalUrl || "/",
+    availableService: services.map((s) => ({
+      "@type": "MedicalTherapy",
+      name: s.title,
+      description: s.description,
+    })),
+    location: clinics.map((c) => ({
+      "@type": "Place",
+      name: c.name,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: c.address,
+        addressLocality: "Islamabad",
+        addressCountry: "PK",
+      },
+      hasMap: c.mapsUrl,
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
+      {/* Schema.org SEO Script injection */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(medicalBusinessSchema) }}
+      />
+
+      <Navigation onOpenBooking={handleOpenBooking} />
       <main>
-        <HeroSection />
+        <HeroSection onOpenBooking={handleOpenBooking} />
         <TrustBar />
         <AboutSection />
-        <ServicesGrid />
-        <Locations />
+        <ServicesGrid onSelectService={handleSelectService} />
+        <Locations onSelectClinic={handleSelectClinic} />
         <Reviews />
+        <FaqSection onOpenBooking={handleOpenBooking} />
       </main>
-      <Footer />
+      <Footer onOpenBooking={handleOpenBooking} />
+
+      <FloatingActionBar onOpenBooking={handleOpenBooking} />
+
+      <BookingModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        preselectedClinic={selectedClinic}
+        preselectedService={selectedService}
+      />
     </div>
   );
 }

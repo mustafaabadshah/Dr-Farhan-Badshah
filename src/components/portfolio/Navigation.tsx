@@ -1,14 +1,30 @@
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Shield, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CONTACT, HERO, NAV_LINKS } from "@/data/portfolioData";
+import { useCMS } from "@/lib/cms-store";
+import { Link } from "@tanstack/react-router";
 
-export function Navigation() {
+interface NavigationProps {
+  onOpenBooking?: () => void;
+}
+
+export function Navigation({ onOpenBooking }: NavigationProps) {
+  const { data } = useCMS();
+  const { hero, contact } = data;
   const [open, setOpen] = useState(false);
 
+  const navLinks = [
+    { label: "About", href: "#about" },
+    { label: "Services", href: "#services" },
+    { label: "Locations", href: "#locations" },
+    { label: "Reviews", href: "#reviews" },
+    { label: "FAQs", href: "#faqs" },
+    { label: "Contact", href: "#contact" },
+  ];
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/70 backdrop-blur-md transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all duration-300">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
         <a href="#top" className="flex items-center gap-2.5">
           <span
@@ -17,13 +33,13 @@ export function Navigation() {
           >
             FB
           </span>
-          <span className="hidden font-display text-sm font-semibold tracking-tight text-foreground sm:block">
-            {HERO.name}
+          <span className="font-display text-base font-bold tracking-tight text-foreground sm:text-lg">
+            {hero.name}
           </span>
         </a>
 
-        <nav className="hidden items-center gap-7 md:flex">
-          {NAV_LINKS.map((link) => (
+        <nav className="hidden items-center gap-6 md:flex">
+          {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -34,12 +50,31 @@ export function Navigation() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
-          <Button asChild size="sm" className="rounded-full px-5">
-            <a href={CONTACT.whatsappUrl} target="_blank" rel="noreferrer">
+        <div className="hidden items-center gap-3 md:flex">
+          {onOpenBooking ? (
+            <Button
+              onClick={onOpenBooking}
+              size="sm"
+              className="rounded-full px-5 font-semibold shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30"
+            >
               Book Appointment
-            </a>
-          </Button>
+            </Button>
+          ) : (
+            <Button asChild size="sm" className="rounded-full px-5 font-semibold">
+              <a href={contact.whatsappUrl} target="_blank" rel="noreferrer">
+                Book Appointment
+              </a>
+            </Button>
+          )}
+
+          <Link
+            to="/admin"
+            className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/40 hover:bg-white hover:text-foreground"
+            title="Custom WordPress-like CMS Dashboard"
+          >
+            <Settings size={13} />
+            <span>CMS</span>
+          </Link>
         </div>
 
         <button
@@ -60,7 +95,7 @@ export function Navigation() {
         )}
       >
         <nav className="flex flex-col gap-1 px-4 py-3">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
@@ -70,16 +105,39 @@ export function Navigation() {
               {link.label}
             </a>
           ))}
-          <Button asChild size="sm" className="mt-2 rounded-full">
-            <a
-              href={CONTACT.whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
+          <div className="pt-2 flex flex-col gap-2">
+            {onOpenBooking ? (
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  onOpenBooking();
+                }}
+                size="sm"
+                className="w-full rounded-full"
+              >
+                Book Appointment
+              </Button>
+            ) : (
+              <Button asChild size="sm" className="w-full rounded-full">
+                <a
+                  href={contact.whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setOpen(false)}
+                >
+                  Book Appointment
+                </a>
+              </Button>
+            )}
+            <Link
+              to="/admin"
               onClick={() => setOpen(false)}
+              className="flex items-center justify-center gap-1.5 rounded-full border border-border/60 bg-muted/40 py-2 text-xs font-semibold text-foreground"
             >
-              Book Appointment
-            </a>
-          </Button>
+              <Settings size={13} />
+              <span>WordPress-like CMS Dashboard</span>
+            </Link>
+          </div>
         </nav>
       </div>
     </header>
