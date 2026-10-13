@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { NotFound } from "@/components/errors/NotFound";
+import { CMSProvider } from "@/lib/cms-store";
+import { Toaster } from "@/components/ui/sonner";
 
 function RootNotFoundComponent() {
   return <NotFound />;
@@ -87,14 +89,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Dr. Farhan Badshah — Physiotherapist in Islamabad" },
+      {
+        name: "description",
+        content:
+          "Evidence-based physiotherapy and rehabilitation in Islamabad by Dr. Farhan Badshah — DPT, internationally licensed (CORU, SCFHS, AHPC).",
+      },
+      { name: "author", content: "Dr. Farhan Badshah" },
+      { property: "og:title", content: "Dr. Farhan Badshah — Physiotherapist in Islamabad" },
+      {
+        property: "og:description",
+        content:
+          "Evidence-based physiotherapy and rehabilitation care in Islamabad — restoring movement and relieving pain.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:image", content: "/doc-farhan.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@thephysioclinic03" },
     ],
     links: [
       {
@@ -134,8 +145,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <CMSProvider>
+        <Outlet />
+        <Toaster position="top-right" richColors />
+      </CMSProvider>
     </QueryClientProvider>
   );
 }
