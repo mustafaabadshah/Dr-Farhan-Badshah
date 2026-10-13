@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, MapPin, Navigation as NavIcon, Calendar, CheckCircle2 } from "lucide-react";
+import { Clock, MapPin, Navigation as NavIcon, Calendar, CheckCircle2, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCMS, type ClinicItem } from "@/lib/cms-store";
 
@@ -125,6 +125,15 @@ export function Locations({ onSelectClinic }: LocationsProps) {
                         <div className="font-semibold text-foreground">{clinic.hours}</div>
                       </div>
                     </div>
+                    {clinic.phone && (
+                      <a
+                        href={`tel:${clinic.phone}`}
+                        className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200/60 px-4 py-2 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100"
+                      >
+                        <Phone size={14} className="text-emerald-600 shrink-0" />
+                        <span>Direct Clinic: {clinic.phone}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
 

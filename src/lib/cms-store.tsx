@@ -70,6 +70,7 @@ export interface ClinicItem {
   openHour: number; // 24-hr format (e.g. 9)
   closeHour: number; // 24-hr format (e.g. 14)
   days: string;
+  phone?: string;
 }
 
 export interface QualificationItem {
@@ -127,6 +128,9 @@ export interface BookingInquiry {
   notes?: string;
   status: "New" | "Confirmed" | "Completed" | "Cancelled";
   createdAt: string;
+  appointmentType?: "Clinic Visit" | "Home Rehab" | "Online Consultation";
+  feeStatus?: "Pending" | "Paid" | "Waived";
+  doctorNotes?: string;
 }
 
 export interface CMSData {
@@ -404,8 +408,12 @@ interface CMSContextType {
   addFAQ: (item: Omit<FAQItem, "id">) => void;
   updateFAQ: (id: string, item: Partial<FAQItem>) => void;
   deleteFAQ: (id: string) => void;
+  addStat: (item: Omit<StatItem, "id">) => void;
+  updateStat: (id: string, item: Partial<StatItem>) => void;
+  deleteStat: (id: string) => void;
   addBooking: (booking: Omit<BookingInquiry, "id" | "createdAt" | "status">) => BookingInquiry;
   updateBookingStatus: (id: string, status: BookingInquiry["status"]) => void;
+  updateBooking: (id: string, updates: Partial<BookingInquiry>) => void;
   deleteBooking: (id: string) => void;
   resetToDefaults: () => void;
   exportJSON: () => string;
@@ -622,6 +630,25 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const addStat = (item: Omit<StatItem, "id">) => {
+    const newItem: StatItem = { ...item, id: `stat-${Date.now()}` };
+    saveState({ ...data, stats: [...data.stats, newItem] });
+  };
+
+  const updateStat = (id: string, updates: Partial<StatItem>) => {
+    saveState({
+      ...data,
+      stats: data.stats.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+    });
+  };
+
+  const deleteStat = (id: string) => {
+    saveState({
+      ...data,
+      stats: data.stats.filter((s) => s.id !== id),
+    });
+  };
+
   const addBooking = (bookingData: Omit<BookingInquiry, "id" | "createdAt" | "status">) => {
     const newBooking: BookingInquiry = {
       ...bookingData,
@@ -640,6 +667,13 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     saveState({
       ...data,
       bookings: data.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
+    });
+  };
+
+  const updateBooking = (id: string, updates: Partial<BookingInquiry>) => {
+    saveState({
+      ...data,
+      bookings: data.bookings.map((b) => (b.id === id ? { ...b, ...updates } : b)),
     });
   };
 
@@ -740,8 +774,12 @@ export const TESTIMONIALS = ${JSON.stringify(
         addFAQ,
         updateFAQ,
         deleteFAQ,
+        addStat,
+        updateStat,
+        deleteStat,
         addBooking,
         updateBookingStatus,
+        updateBooking,
         deleteBooking,
         resetToDefaults,
         exportJSON,

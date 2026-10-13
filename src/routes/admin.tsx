@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -23,6 +23,7 @@ import {
   MapPin,
   Menu,
   MessageSquare,
+  Phone,
   Plus,
   RefreshCw,
   Save,
@@ -36,8 +37,24 @@ import {
   User,
   X,
   KeyRound,
+  FileSpreadsheet,
+  Send,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
-import { useCMS, type ServiceItem, type ClinicItem, type FAQItem, type TestimonialItem } from "@/lib/cms-store";
+import { FaWhatsapp } from "react-icons/fa";
+import {
+  useCMS,
+  type ServiceItem,
+  type ClinicItem,
+  type FAQItem,
+  type TestimonialItem,
+  type QualificationItem,
+  type CertificationItem,
+  type LicenseItem,
+  type StatItem,
+  type BookingInquiry,
+} from "@/lib/cms-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,7 +102,11 @@ function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Form states for adding items
+  // Inquiries filter & search
+  const [searchInquiriesQuery, setSearchInquiriesQuery] = useState("");
+  const [statusInquiriesFilter, setStatusInquiriesFilter] = useState<string>("All");
+
+  // Service Modal
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [serviceForm, setServiceForm] = useState<{
@@ -100,6 +121,56 @@ function AdminDashboard() {
     icon: "Activity",
   });
 
+  // Clinic Modal
+  const [clinicModalOpen, setClinicModalOpen] = useState(false);
+  const [editingClinicId, setEditingClinicId] = useState<string | null>(null);
+  const [clinicForm, setClinicForm] = useState({
+    name: "",
+    address: "",
+    hours: "9:00 AM – 2:00 PM",
+    days: "Monday – Saturday",
+    openHour: 9,
+    closeHour: 14,
+    mapsUrl: "",
+    phone: "",
+  });
+
+  // Qualification Modal
+  const [qualificationModalOpen, setQualificationModalOpen] = useState(false);
+  const [editingQualificationId, setEditingQualificationId] = useState<string | null>(null);
+  const [qualificationForm, setQualificationForm] = useState({
+    title: "",
+    institution: "",
+    year: "Completed",
+  });
+
+  // Certification Modal
+  const [certificationModalOpen, setCertificationModalOpen] = useState(false);
+  const [editingCertificationId, setEditingCertificationId] = useState<string | null>(null);
+  const [certificationForm, setCertificationForm] = useState({
+    title: "",
+    issuer: "",
+  });
+
+  // License Modal
+  const [licenseModalOpen, setLicenseModalOpen] = useState(false);
+  const [editingLicenseId, setEditingLicenseId] = useState<string | null>(null);
+  const [licenseForm, setLicenseForm] = useState({
+    code: "",
+    region: "",
+    fullName: "",
+  });
+
+  // Practice Stat Modal
+  const [statModalOpen, setStatModalOpen] = useState(false);
+  const [editingStatId, setEditingStatId] = useState<string | null>(null);
+  const [statForm, setStatForm] = useState({
+    label: "",
+    value: "",
+    description: "",
+  });
+
+  // FAQ Modal
   const [faqModalOpen, setFaqModalOpen] = useState(false);
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
   const [faqForm, setFaqForm] = useState({
@@ -108,7 +179,9 @@ function AdminDashboard() {
     category: "Appointments",
   });
 
+  // Testimonial Modal
   const [testimonialModalOpen, setTestimonialModalOpen] = useState(false);
+  const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
   const [testimonialForm, setTestimonialForm] = useState({
     name: "",
     quote: "",
@@ -118,17 +191,66 @@ function AdminDashboard() {
     initial: "P",
   });
 
+  // Manual Booking Modal
+  const [manualBookingModalOpen, setManualBookingModalOpen] = useState(false);
+  const [manualBookingForm, setManualBookingForm] = useState({
+    patientName: "",
+    phone: "",
+    clinic: data.clinics?.[0]?.name || "Ali Medical Center",
+    service: data.services?.[0]?.title || "Sports Injury Rehab",
+    preferredDate: new Date().toISOString().split("T")[0],
+    preferredTimeSlot: "Morning (10:00 AM – 01:00 PM)",
+    notes: "",
+  });
+
+  // Edit Booking Modal
+  const [bookingEditModalOpen, setBookingEditModalOpen] = useState(false);
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
+  const [bookingEditForm, setBookingEditForm] = useState({
+    patientName: "",
+    phone: "",
+    clinic: "",
+    service: "",
+    preferredDate: "",
+    preferredTimeSlot: "",
+    status: "New" as BookingInquiry["status"],
+    appointmentType: "Clinic Visit" as "Clinic Visit" | "Home Rehab" | "Online Consultation",
+    feeStatus: "Pending" as "Pending" | "Paid" | "Waived",
+    notes: "",
+    doctorNotes: "",
+  });
+
+  // WhatsApp Assistant Modal
+  const [waModalOpen, setWaModalOpen] = useState(false);
+  const [selectedWaBooking, setSelectedWaBooking] = useState<BookingInquiry | null>(null);
+  const [customWaMessage, setCustomWaMessage] = useState("");
+
+  // Custom Admin Credentials State
+  const [adminCreds, setAdminCreds] = useState(() => {
+    try {
+      const saved = localStorage.getItem("docfolio_admin_custom_creds");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { user: "admin", pass: "drfarhan2026" };
+  });
+  const [securityModalOpen, setSecurityModalOpen] = useState(false);
+  const [newAdminUser, setNewAdminUser] = useState(adminCreds.user);
+  const [newAdminPass, setNewAdminPass] = useState(adminCreds.pass);
+
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginUser.trim().toLowerCase() === "admin" && loginPass === "drfarhan2026") {
+    if (
+      loginUser.trim().toLowerCase() === adminCreds.user.toLowerCase() &&
+      loginPass === adminCreds.pass
+    ) {
       setIsAuthenticated(true);
       sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
       setLoginError("");
       toast.success("Welcome to DocFolio Admin Dashboard");
     } else {
-      setLoginError("Invalid username or password. Default: admin / drfarhan2026");
+      setLoginError("Invalid username or password. (Default: admin / drfarhan2026)");
       toast.error("Incorrect credentials");
     }
   };
@@ -139,7 +261,7 @@ function AdminDashboard() {
     toast.info("Logged out successfully");
   };
 
-  // Service modal helpers
+  // Service helpers
   const openNewService = () => {
     setEditingServiceId(null);
     setServiceForm({
@@ -178,7 +300,149 @@ function AdminDashboard() {
     setServiceModalOpen(false);
   };
 
-  // FAQ modal helpers
+  // Clinic helpers
+  const openNewClinic = () => {
+    setEditingClinicId(null);
+    setClinicForm({
+      name: "",
+      address: "",
+      hours: "9:00 AM – 2:00 PM",
+      days: "Monday – Saturday",
+      openHour: 9,
+      closeHour: 14,
+      mapsUrl: "https://maps.google.com/?q=Islamabad",
+      phone: "",
+    });
+    setClinicModalOpen(true);
+  };
+
+  const openEditClinic = (c: ClinicItem) => {
+    setEditingClinicId(c.id);
+    setClinicForm({
+      name: c.name || "",
+      address: c.address || "",
+      hours: c.hours || "",
+      days: c.days || "Monday – Saturday",
+      openHour: c.openHour ?? 9,
+      closeHour: c.closeHour ?? 14,
+      mapsUrl: c.mapsUrl || "",
+      phone: c.phone || "",
+    });
+    setClinicModalOpen(true);
+  };
+
+  const handleSaveClinic = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clinicForm.name.trim() || !clinicForm.address.trim()) {
+      toast.error("Clinic name and address are required");
+      return;
+    }
+    if (editingClinicId) {
+      cms.updateClinic(editingClinicId, clinicForm);
+      toast.success("Clinic updated successfully");
+    } else {
+      cms.addClinic(clinicForm);
+      toast.success("New clinic added successfully");
+    }
+    setClinicModalOpen(false);
+  };
+
+  // Qualification helpers
+  const openNewQualification = () => {
+    setEditingQualificationId(null);
+    setQualificationForm({ title: "", institution: "", year: "Completed" });
+    setQualificationModalOpen(true);
+  };
+
+  const openEditQualification = (q: QualificationItem) => {
+    setEditingQualificationId(q.id);
+    setQualificationForm({
+      title: q.title || "",
+      institution: q.institution || "",
+      year: q.year || "Completed",
+    });
+    setQualificationModalOpen(true);
+  };
+
+  const handleSaveQualification = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!qualificationForm.title.trim() || !qualificationForm.institution.trim()) {
+      toast.error("Degree title and institution are required");
+      return;
+    }
+    if (editingQualificationId) {
+      cms.updateQualification(editingQualificationId, qualificationForm);
+      toast.success("Degree qualification updated");
+    } else {
+      cms.addQualification(qualificationForm);
+      toast.success("New qualification added");
+    }
+    setQualificationModalOpen(false);
+  };
+
+  // Certification helpers
+  const openNewCertification = () => {
+    setEditingCertificationId(null);
+    setCertificationForm({ title: "", issuer: "" });
+    setCertificationModalOpen(true);
+  };
+
+  const openEditCertification = (c: CertificationItem) => {
+    setEditingCertificationId(c.id);
+    setCertificationForm({ title: c.title || "", issuer: c.issuer || "" });
+    setCertificationModalOpen(true);
+  };
+
+  const handleSaveCertification = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!certificationForm.title.trim() || !certificationForm.issuer.trim()) {
+      toast.error("Certification title and issuer are required");
+      return;
+    }
+    if (editingCertificationId) {
+      cms.updateCertification(editingCertificationId, certificationForm);
+      toast.success("Certification updated");
+    } else {
+      cms.addCertification(certificationForm);
+      toast.success("New certification added");
+    }
+    setCertificationModalOpen(false);
+  };
+
+  // License helpers
+  const openNewLicense = () => {
+    setEditingLicenseId(null);
+    setLicenseForm({ code: "", region: "", fullName: "" });
+    setLicenseModalOpen(true);
+  };
+
+  const openEditLicense = (lic: LicenseItem) => {
+    setEditingLicenseId(lic.id);
+    setLicenseForm({
+      code: lic.code || "",
+      region: lic.region || "",
+      fullName: lic.fullName || "",
+    });
+    setLicenseModalOpen(true);
+  };
+
+  const handleSaveLicense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!licenseForm.code.trim() || !licenseForm.region.trim()) {
+      toast.error("License code and region are required");
+      return;
+    }
+    if (editingLicenseId) {
+      cms.updateLicense(editingLicenseId, licenseForm);
+      toast.success("Medical license updated");
+    } else {
+      cms.addLicense(licenseForm);
+      toast.success("New license added");
+    }
+    setLicenseModalOpen(false);
+  };
+
+  // FAQ helpers
   const openNewFaq = () => {
     setEditingFaqId(null);
     setFaqForm({ question: "", answer: "", category: "Appointments" });
@@ -207,19 +471,42 @@ function AdminDashboard() {
     setFaqModalOpen(false);
   };
 
-  // Testimonial modal helpers
-  const handleSaveTestimonial = (e: React.FormEvent) => {
+  // Practice Stat helpers
+  const openNewStat = () => {
+    setEditingStatId(null);
+    setStatForm({ label: "", value: "", description: "" });
+    setStatModalOpen(true);
+  };
+
+  const openEditStat = (s: StatItem) => {
+    setEditingStatId(s.id);
+    setStatForm({
+      label: s.label || "",
+      value: s.value || "",
+      description: s.description || "",
+    });
+    setStatModalOpen(true);
+  };
+
+  const handleSaveStat = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!testimonialForm.name.trim() || !testimonialForm.quote.trim()) {
-      toast.error("Name and review quote are required");
+    if (!statForm.label.trim() || !statForm.value.trim()) {
+      toast.error("Metric label and number value are required");
       return;
     }
-    cms.addTestimonial({
-      ...testimonialForm,
-      initial: testimonialForm.name.trim()[0]?.toUpperCase() || "P",
-    });
-    toast.success("Patient testimonial added");
-    setTestimonialModalOpen(false);
+    if (editingStatId) {
+      cms.updateStat(editingStatId, statForm);
+      toast.success("Practice impact metric updated");
+    } else {
+      cms.addStat(statForm);
+      toast.success("New practice impact metric added");
+    }
+    setStatModalOpen(false);
+  };
+
+  // Testimonial helpers
+  const openNewTestimonial = () => {
+    setEditingTestimonialId(null);
     setTestimonialForm({
       name: "",
       quote: "",
@@ -228,6 +515,176 @@ function AdminDashboard() {
       reviewCount: "Google Review",
       initial: "P",
     });
+    setTestimonialModalOpen(true);
+  };
+
+  const openEditTestimonial = (t: TestimonialItem) => {
+    setEditingTestimonialId(t.id);
+    setTestimonialForm({
+      name: t.name || "",
+      quote: t.quote || "",
+      rating: t.rating || 5,
+      date: t.date || "Recent",
+      reviewCount: t.reviewCount || "Google Review",
+      initial: t.initial || (t.name?.[0]?.toUpperCase() || "P"),
+    });
+    setTestimonialModalOpen(true);
+  };
+
+  const handleSaveTestimonial = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testimonialForm.name.trim() || !testimonialForm.quote.trim()) {
+      toast.error("Name and review quote are required");
+      return;
+    }
+    const initial = testimonialForm.name.trim()[0]?.toUpperCase() || "P";
+    if (editingTestimonialId) {
+      cms.updateTestimonial(editingTestimonialId, {
+        ...testimonialForm,
+        initial,
+      });
+      toast.success("Patient testimonial updated");
+    } else {
+      cms.addTestimonial({
+        ...testimonialForm,
+        initial,
+      });
+      toast.success("Patient testimonial added");
+    }
+    setTestimonialModalOpen(false);
+  };
+
+  // Edit Booking Helper
+  const openEditBooking = (b: BookingInquiry) => {
+    setEditingBookingId(b.id);
+    setBookingEditForm({
+      patientName: b.patientName || "",
+      phone: b.phone || "",
+      clinic: b.clinic || data.clinics?.[0]?.name || "Ali Medical Center",
+      service: b.service || data.services?.[0]?.title || "Sports Injury Rehab",
+      preferredDate: b.preferredDate || new Date().toISOString().split("T")[0],
+      preferredTimeSlot: b.preferredTimeSlot || "Morning (10:00 AM – 01:00 PM)",
+      status: b.status || "New",
+      appointmentType: b.appointmentType || "Clinic Visit",
+      feeStatus: b.feeStatus || "Pending",
+      notes: b.notes || "",
+      doctorNotes: b.doctorNotes || "",
+    });
+    setBookingEditModalOpen(true);
+  };
+
+  const handleSaveBookingEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingEditForm.patientName.trim() || !bookingEditForm.phone.trim()) {
+      toast.error("Patient name and phone are required");
+      return;
+    }
+    if (editingBookingId) {
+      cms.updateBooking(editingBookingId, bookingEditForm);
+      toast.success("Patient appointment updated successfully");
+    }
+    setBookingEditModalOpen(false);
+  };
+
+  // WhatsApp Assistant Helper
+  const openWhatsAppModal = (b: BookingInquiry) => {
+    setSelectedWaBooking(b);
+    const defaultMsg = `Hello ${b.patientName}, this is Dr. Farhan Badshah's physiotherapy clinic. We have confirmed your appointment for *${b.service}* at *${b.clinic}* on *${b.preferredDate}* (${b.preferredTimeSlot}). Please let us know if you need location directions.`;
+    setCustomWaMessage(defaultMsg);
+    setWaModalOpen(true);
+  };
+
+  // Security Credentials Helpers
+  const handleSaveSecuritySettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminUser.trim() || !newAdminPass.trim()) {
+      toast.error("Username and password cannot be empty");
+      return;
+    }
+    const creds = { user: newAdminUser.trim(), pass: newAdminPass };
+    setAdminCreds(creds);
+    localStorage.setItem("docfolio_admin_custom_creds", JSON.stringify(creds));
+    toast.success("Admin login credentials updated!");
+    setSecurityModalOpen(false);
+  };
+
+  const handleResetSecuritySettings = () => {
+    if (confirm("Reset admin credentials to default (admin / drfarhan2026)?")) {
+      const defaultCreds = { user: "admin", pass: "drfarhan2026" };
+      setAdminCreds(defaultCreds);
+      setNewAdminUser("admin");
+      setNewAdminPass("drfarhan2026");
+      localStorage.removeItem("docfolio_admin_custom_creds");
+      toast.info("Admin credentials reset to defaults");
+    }
+  };
+
+  // Manual Booking Helper
+  const handleSaveManualBooking = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualBookingForm.patientName.trim() || !manualBookingForm.phone.trim()) {
+      toast.error("Patient name and phone are required");
+      return;
+    }
+    cms.addBooking(manualBookingForm);
+    toast.success("Manual appointment inquiry recorded");
+    setManualBookingModalOpen(false);
+    setManualBookingForm({
+      patientName: "",
+      phone: "",
+      clinic: data.clinics?.[0]?.name || "Ali Medical Center",
+      service: data.services?.[0]?.title || "Sports Injury Rehab",
+      preferredDate: new Date().toISOString().split("T")[0],
+      preferredTimeSlot: "Morning (10:00 AM – 01:00 PM)",
+      notes: "",
+    });
+  };
+
+  // Export Inquiries to CSV
+  const handleExportInquiriesCSV = () => {
+    const inquiries = data.bookings || [];
+    if (inquiries.length === 0) {
+      toast.info("No inquiries to export");
+      return;
+    }
+    const headers = [
+      "ID",
+      "Date Submitted",
+      "Patient Name",
+      "Phone",
+      "Clinic",
+      "Service",
+      "Preferred Date",
+      "Time Window",
+      "Status",
+      "Notes",
+    ];
+    const rows = inquiries.map((b) => [
+      `"${b.id}"`,
+      `"${b.createdAt}"`,
+      `"${b.patientName.replace(/"/g, '""')}"`,
+      `"${b.phone}"`,
+      `"${b.clinic}"`,
+      `"${b.service}"`,
+      `"${b.preferredDate}"`,
+      `"${b.preferredTimeSlot}"`,
+      `"${b.status}"`,
+      `"${(b.notes || "").replace(/"/g, '""')}"`,
+    ]);
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `patient-inquiries-dr-farhan-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Inquiries exported to CSV spreadsheet!");
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -249,6 +706,18 @@ function AdminDashboard() {
     "Zap",
     "Target",
   ];
+
+  // Filtered inquiries list
+  const filteredBookings = (data.bookings || []).filter((b) => {
+    const matchesSearch =
+      b.patientName.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
+      b.phone.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
+      b.service.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
+      b.clinic.toLowerCase().includes(searchInquiriesQuery.toLowerCase());
+    const matchesStatus =
+      statusInquiriesFilter === "All" || b.status === statusInquiriesFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   // ==========================================
   // WORDPRESS AUTHENTICATION SCREEN (LOGIN)
@@ -395,6 +864,17 @@ function AdminDashboard() {
             <span className="hidden sm:inline">Git Export / Code</span>
           </Button>
 
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setSecurityModalOpen(true)}
+            className="h-7 border-white/20 bg-white/10 hover:bg-white/20 text-white text-xs px-2.5 rounded font-medium flex items-center gap-1.5"
+            title="Manage admin login credentials"
+          >
+            <KeyRound size={12} />
+            <span className="hidden sm:inline">Password</span>
+          </Button>
+
           <button
             onClick={() => {
               if (confirm("Reset all content back to repository defaults?")) {
@@ -428,11 +908,19 @@ function AdminDashboard() {
         </div>
       </header>
 
-      <div className="flex min-h-[calc(100vh-2.5rem)]">
+      <div className="flex min-h-[calc(100vh-2.5rem)] pb-16 md:pb-0">
+        {/* Backdrop for mobile */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 md:hidden backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* 2. WordPress Left Navigation Sidebar */}
         <aside
-          className={`fixed inset-y-10 left-0 z-40 w-52 bg-[#1d2327] text-white md:static md:block ${
-            mobileMenuOpen ? "block" : "hidden"
+          className={`fixed inset-y-10 left-0 z-50 w-60 bg-[#1d2327] text-white shadow-2xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           }`}
         >
           <nav className="flex flex-col py-2 text-[13px] font-normal">
@@ -555,45 +1043,57 @@ function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Postbox: Quick Content Actions */}
+              {/* Quick Content Actions */}
               <div className="border border-[#c3c4c7] bg-white shadow-xs">
                 <div className="border-b border-[#c3c4c7] bg-[#f6f7f7] px-4 py-2.5 font-bold text-sm text-[#1d2327]">
                   Quick Actions & Shortcuts
                 </div>
-                <div className="p-4 grid gap-3 sm:grid-cols-3">
+                <div className="p-4 grid gap-3 sm:grid-cols-4">
                   <button
                     onClick={() => setActiveTab("seo")}
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
-                      <Search size={14} /> Edit Google SEO Snippet
+                      <Search size={14} /> SEO Meta Tags
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Optimize meta tags, titles & OpenGraph social cards
+                      Optimize meta tags & search snippets
                     </div>
                   </button>
 
                   <button
-                    onClick={openNewService}
+                    onClick={openNewClinic}
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
-                      <Plus size={14} /> Add New Medical Treatment
+                      <Plus size={14} /> Add New Clinic
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Add new physiotherapy service or condition program
+                      Add clinic center and shift hours
                     </div>
                   </button>
 
                   <button
-                    onClick={openNewFaq}
+                    onClick={openNewQualification}
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
-                      <HelpCircle size={14} /> Add Patient FAQ
+                      <GraduationCap size={14} /> Add Qualification
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Answer common questions about rehab & visits
+                      Add medical degree or diploma
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setManualBookingModalOpen(true)}
+                    className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
+                  >
+                    <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
+                      <Calendar size={14} /> Record Walk-in
+                    </div>
+                    <div className="mt-1 text-[11px] text-[#646970]">
+                      Manually add phone/walk-in patient
                     </div>
                   </button>
                 </div>
@@ -997,100 +1497,93 @@ function AdminDashboard() {
           {/* TAB 5: CLINICS & SCHEDULE */}
           {activeTab === "clinics" && (
             <div className="space-y-6">
-              <div className="border-b border-[#c3c4c7]/40 pb-4">
-                <h1 className="text-2xl font-bold text-[#1d2327]">
-                  Clinics & Operating Timings ({(data.clinics || []).length})
-                </h1>
-                <p className="text-xs text-[#50575e]">
-                  Manage Islamabad clinic locations, shift hours, and Google Maps direction URLs.
-                </p>
+              <div className="flex items-center justify-between border-b border-[#c3c4c7]/40 pb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#1d2327]">
+                    Clinics & Operating Timings ({(data.clinics || []).length})
+                  </h1>
+                  <p className="text-xs text-[#50575e]">
+                    Add, edit, or remove clinic locations and set operating shift hours.
+                  </p>
+                </div>
+                <Button
+                  onClick={openNewClinic}
+                  className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs"
+                >
+                  <Plus size={14} className="mr-1.5" /> Add New Clinic
+                </Button>
               </div>
 
               <div className="grid gap-6 md:grid-cols-3">
                 {(data.clinics || []).map((clinic, idx) => (
                   <div
                     key={clinic.id}
-                    className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4"
+                    className="border border-[#c3c4c7] bg-white p-5 shadow-xs flex flex-col justify-between"
                   >
-                    <div className="font-bold text-sm text-[#1d2327] flex items-center justify-between">
-                      <span>Clinic #{idx + 1}</span>
-                      <MapPin size={16} className="text-[#2271b1]" />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-[#646970]">Clinic Name</label>
-                      <Input
-                        value={clinic.name ?? ""}
-                        onChange={(e) =>
-                          cms.updateClinic(clinic.id, { name: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-[#646970]">Address</label>
-                      <Input
-                        value={clinic.address ?? ""}
-                        onChange={(e) =>
-                          cms.updateClinic(clinic.id, { address: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-[#646970]">Hours (Label)</label>
-                      <Input
-                        value={clinic.hours ?? ""}
-                        onChange={(e) =>
-                          cms.updateClinic(clinic.id, { hours: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#646970]">Open Hour (24h)</label>
-                        <Input
-                          type="number"
-                          value={clinic.openHour ?? 9}
-                          onChange={(e) =>
-                            cms.updateClinic(clinic.id, {
-                              openHour: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
+                    <div className="space-y-3">
+                      <div className="font-bold text-sm text-[#1d2327] flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <MapPin size={16} className="text-[#2271b1]" />
+                          {clinic.name}
+                        </span>
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 font-semibold">
+                          #{idx + 1}
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#646970]">Close Hour (24h)</label>
-                        <Input
-                          type="number"
-                          value={clinic.closeHour ?? 17}
-                          onChange={(e) =>
-                            cms.updateClinic(clinic.id, {
-                              closeHour: parseInt(e.target.value) || 0,
-                            })
-                          }
-                        />
+
+                      <div className="text-xs text-[#50575e] leading-relaxed">
+                        <div className="font-semibold text-slate-800">Address:</div>
+                        <div>{clinic.address}</div>
                       </div>
+
+                      <div className="rounded bg-slate-50 p-2.5 text-xs space-y-1">
+                        <div className="flex items-center justify-between text-[#1d2327] font-semibold">
+                          <span>{clinic.days}</span>
+                          <span className="text-[#2271b1]">{clinic.hours}</span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          Open: {clinic.openHour}:00 — Close: {clinic.closeHour}:00 (24h)
+                        </div>
+                      </div>
+
+                      {clinic.phone && (
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                          <Phone size={12} className="text-emerald-600" />
+                          <span>Direct Desk: {clinic.phone}</span>
+                        </div>
+                      )}
+
+                      {clinic.mapsUrl && (
+                        <a
+                          href={clinic.mapsUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-[#2271b1] hover:underline"
+                        >
+                          <ExternalLink size={11} /> View Google Maps Link
+                        </a>
+                      )}
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-[#646970]">Google Maps Link</label>
-                      <Input
-                        value={clinic.mapsUrl ?? ""}
-                        onChange={(e) =>
-                          cms.updateClinic(clinic.id, { mapsUrl: e.target.value })
-                        }
-                      />
+                    <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <button
+                        onClick={() => openEditClinic(clinic)}
+                        className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-semibold"
+                      >
+                        <FileEdit size={12} /> Edit Details
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Delete clinic "${clinic.name}"?`)) {
+                            cms.deleteClinic(clinic.id);
+                            toast.success("Clinic deleted");
+                          }
+                        }}
+                        className="text-xs text-[#d63638] hover:underline flex items-center gap-1"
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
                     </div>
-
-                    <Button
-                      onClick={() => toast.success(`Clinic ${clinic.name} saved`)}
-                      size="sm"
-                      className="w-full bg-[#2271b1] hover:bg-[#135e96] text-white text-xs"
-                    >
-                      Save Clinic Details
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -1099,115 +1592,219 @@ function AdminDashboard() {
 
           {/* TAB 6: CREDENTIALS & LICENSES */}
           {activeTab === "credentials" && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="border-b border-[#c3c4c7]/40 pb-4">
                 <h1 className="text-2xl font-bold text-[#1d2327]">
                   Degrees, Certifications & Licenses
                 </h1>
                 <p className="text-xs text-[#50575e]">
-                  Manage medical degrees (DPT, MS), sports certifications (FIFA, OMT), and international licensure (CORU, SCFHS, AHPC).
+                  Add, edit, or delete degrees (DPT, MS), sports certifications (FIFA, OMT), and international licensure.
                 </p>
               </div>
 
-              {/* Licenses */}
+              {/* 1. International Licenses */}
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
-                <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-[#2271b1]" />
-                  <span>International Medical Licenses ({(data.licenses || []).length})</span>
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-[#2271b1]" />
+                    <span>International Medical Licenses ({(data.licenses || []).length})</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={openNewLicense}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs h-7"
+                  >
+                    <Plus size={12} className="mr-1" /> Add License
+                  </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(data.licenses || []).map((lic) => (
-                    <div key={lic.id} className="rounded border border-slate-200 p-3 space-y-2">
-                      <div className="font-bold text-xs text-[#1d2327]">{lic.code}</div>
-                      <Input
-                        value={lic.region ?? ""}
-                        onChange={(e) =>
-                          cms.updateLicense(lic.id, { region: e.target.value })
-                        }
-                        placeholder="Region"
-                      />
-                      <Input
-                        value={lic.fullName ?? ""}
-                        onChange={(e) =>
-                          cms.updateLicense(lic.id, { fullName: e.target.value })
-                        }
-                        placeholder="Council Name"
-                      />
+                    <div
+                      key={lic.id}
+                      className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-[#1d2327]">{lic.code}</span>
+                          <span className="text-xs font-semibold text-[#2271b1]">{lic.region}</span>
+                        </div>
+                        <div className="mt-1 text-xs text-[#50575e]">{lic.fullName}</div>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
+                        <button
+                          onClick={() => openEditLicense(lic)}
+                          className="text-[#2271b1] hover:underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete license ${lic.code}?`)) {
+                              cms.deleteLicense(lic.id);
+                              toast.success("License deleted");
+                            }
+                          }}
+                          className="text-[#d63638] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Qualifications */}
+              {/* 2. Academic Qualifications */}
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
-                <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
-                  <GraduationCap size={16} className="text-[#2271b1]" />
-                  <span>Academic Qualifications ({(data.qualifications || []).length})</span>
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
+                    <GraduationCap size={16} className="text-[#2271b1]" />
+                    <span>Academic Qualifications & Degrees ({(data.qualifications || []).length})</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={openNewQualification}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs h-7"
+                  >
+                    <Plus size={12} className="mr-1" /> Add Degree
+                  </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(data.qualifications || []).map((q) => (
-                    <div key={q.id} className="rounded border border-slate-200 p-3 space-y-2">
-                      <Input
-                        value={q.title ?? ""}
-                        onChange={(e) =>
-                          cms.updateQualification(q.id, { title: e.target.value })
-                        }
-                        placeholder="Degree Title"
-                      />
-                      <Input
-                        value={q.institution ?? ""}
-                        onChange={(e) =>
-                          cms.updateQualification(q.id, { institution: e.target.value })
-                        }
-                        placeholder="University / Institute"
-                      />
-                      <Input
-                        value={q.year ?? ""}
-                        onChange={(e) =>
-                          cms.updateQualification(q.id, { year: e.target.value })
-                        }
-                        placeholder="Status / Year"
-                      />
+                    <div
+                      key={q.id}
+                      className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-bold text-xs text-[#1d2327]">{q.title}</div>
+                        <div className="text-xs text-[#50575e]">{q.institution}</div>
+                        <div className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          {q.year}
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
+                        <button
+                          onClick={() => openEditQualification(q)}
+                          className="text-[#2271b1] hover:underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete qualification ${q.title}?`)) {
+                              cms.deleteQualification(q.id);
+                              toast.success("Qualification deleted");
+                            }
+                          }}
+                          className="text-[#d63638] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Certifications */}
+              {/* 3. Certifications */}
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
-                <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
-                  <Award size={16} className="text-[#2271b1]" />
-                  <span>Specialized Certifications ({(data.certifications || []).length})</span>
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
+                    <Award size={16} className="text-[#2271b1]" />
+                    <span>Specialized Certifications ({(data.certifications || []).length})</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={openNewCertification}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs h-7"
+                  >
+                    <Plus size={12} className="mr-1" /> Add Certification
+                  </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(data.certifications || []).map((c) => (
-                    <div key={c.id} className="rounded border border-slate-200 p-3 space-y-2">
-                      <Input
-                        value={c.title ?? ""}
-                        onChange={(e) =>
-                          cms.updateCertification(c.id, { title: e.target.value })
-                        }
-                        placeholder="Certification Title"
-                      />
-                      <Input
-                        value={c.issuer ?? ""}
-                        onChange={(e) =>
-                          cms.updateCertification(c.id, { issuer: e.target.value })
-                        }
-                        placeholder="Issuing Authority (e.g. FIFA)"
-                      />
+                    <div
+                      key={c.id}
+                      className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-bold text-xs text-[#1d2327]">{c.title}</div>
+                        <div className="text-xs text-[#50575e]">Issuer: {c.issuer}</div>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
+                        <button
+                          onClick={() => openEditCertification(c)}
+                          className="text-[#2271b1] hover:underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete certification ${c.title}?`)) {
+                              cms.deleteCertification(c.id);
+                              toast.success("Certification deleted");
+                            }
+                          }}
+                          className="text-[#d63638] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => toast.success("Credentials saved successfully")}
-                  className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs px-6"
-                >
-                  <Save size={14} className="mr-1.5" /> Save Credentials
-                </Button>
+              {/* 4. Practice Impact Numbers / Stats */}
+              <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
+                    <TrendingUp size={16} className="text-[#2271b1]" />
+                    <span>Practice Metrics & Impact Numbers ({(data.stats || []).length})</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={openNewStat}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs h-7"
+                  >
+                    <Plus size={12} className="mr-1" /> Add Metric
+                  </Button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-4">
+                  {(data.stats || []).map((s) => (
+                    <div
+                      key={s.id}
+                      className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-bold text-lg text-primary">{s.value}</div>
+                        <div className="font-bold text-xs text-[#1d2327]">{s.label}</div>
+                        <div className="mt-1 text-[11px] text-[#50575e] leading-snug">
+                          {s.description}
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
+                        <button
+                          onClick={() => openEditStat(s)}
+                          className="text-[#2271b1] hover:underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete metric "${s.label}"?`)) {
+                              cms.deleteStat(s.id);
+                              toast.success("Practice metric deleted");
+                            }
+                          }}
+                          className="text-[#d63638] hover:underline"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1225,7 +1822,7 @@ function AdminDashboard() {
                   </p>
                 </div>
                 <Button
-                  onClick={() => setTestimonialModalOpen(true)}
+                  onClick={openNewTestimonial}
                   className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs"
                 >
                   <Plus size={14} className="mr-1.5" /> Add New Review
@@ -1255,7 +1852,13 @@ function AdminDashboard() {
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                      <button
+                        onClick={() => openEditTestimonial(t)}
+                        className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-semibold"
+                      >
+                        <FileEdit size={12} /> Edit Review
+                      </button>
                       <button
                         onClick={() => {
                           if (confirm(`Remove review by ${t.name}?`)) {
@@ -1340,82 +1943,336 @@ function AdminDashboard() {
             </div>
           )}
 
-          {/* TAB 9: INQUIRIES & BOOKINGS LOG */}
+          {/* TAB 9: INQUIRIES & BOOKINGS LOG (WITH WHATSAPP & SPREADSHEET EXPORT) */}
           {activeTab === "bookings" && (
             <div className="space-y-6">
-              <div className="border-b border-[#c3c4c7]/40 pb-4">
-                <h1 className="text-2xl font-bold text-[#1d2327]">
-                  Patient Inquiries & Appointments ({(data.bookings || []).length})
-                </h1>
-                <p className="text-xs text-[#50575e]">
-                  Consultation requests submitted by patients via the website booking modal.
-                </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#c3c4c7]/40 pb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#1d2327]">
+                    Patient Inquiries & Appointments ({(data.bookings || []).length})
+                  </h1>
+                  <p className="text-xs text-[#50575e]">
+                    Manage consultation bookings, one-click WhatsApp confirmations, doctor's notes, and export to CSV.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => setManualBookingModalOpen(true)}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs h-8"
+                  >
+                    <Plus size={13} className="mr-1" /> Record New Patient
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleExportInquiriesCSV}
+                    className="text-xs h-8 bg-white border-slate-300"
+                  >
+                    <FileSpreadsheet size={13} className="mr-1 text-emerald-600" /> Export CSV
+                  </Button>
+                </div>
               </div>
 
-              <div className="border border-[#c3c4c7] bg-white shadow-xs overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead>
-                    <tr className="border-b border-[#c3c4c7] bg-[#f6f7f7] text-[#50575e]">
-                      <th className="py-2.5 px-4">Date Submitted</th>
-                      <th className="py-2.5 px-4">Patient Name</th>
-                      <th className="py-2.5 px-4">Phone</th>
-                      <th className="py-2.5 px-4">Clinic</th>
-                      <th className="py-2.5 px-4">Requested Specialty</th>
-                      <th className="py-2.5 px-4">Preferred Slot</th>
-                      <th className="py-2.5 px-4">Status</th>
-                      <th className="py-2.5 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(data.bookings || []).map((b) => (
-                      <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50/80">
-                        <td className="py-3 px-4 text-[#646970]">{b.createdAt}</td>
-                        <td className="py-3 px-4 font-bold text-[#1d2327]">{b.patientName}</td>
-                        <td className="py-3 px-4">
+              {/* Quick Status Filter Pills with Live Counters */}
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { key: "All", label: "All Inquiries", count: (data.bookings || []).length, badgeBg: "bg-slate-200 text-slate-800" },
+                  { key: "New", label: "New Leads", count: (data.bookings || []).filter((b) => b.status === "New").length, badgeBg: "bg-amber-100 text-amber-800" },
+                  { key: "Confirmed", label: "Confirmed", count: (data.bookings || []).filter((b) => b.status === "Confirmed").length, badgeBg: "bg-emerald-100 text-emerald-800" },
+                  { key: "Completed", label: "Completed", count: (data.bookings || []).filter((b) => b.status === "Completed").length, badgeBg: "bg-blue-100 text-blue-800" },
+                  { key: "Cancelled", label: "Cancelled", count: (data.bookings || []).filter((b) => b.status === "Cancelled").length, badgeBg: "bg-rose-100 text-rose-800" },
+                ].map((chip) => (
+                  <button
+                    key={chip.key}
+                    onClick={() => setStatusInquiriesFilter(chip.key)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border transition-all ${
+                      statusInquiriesFilter === chip.key
+                        ? "bg-[#2271b1] text-white border-[#2271b1] shadow-xs"
+                        : "bg-white text-slate-700 border-slate-300 hover:border-[#2271b1]"
+                    }`}
+                  >
+                    <span>{chip.label}</span>
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                        statusInquiriesFilter === chip.key
+                          ? "bg-white/25 text-white"
+                          : chip.badgeBg
+                      }`}
+                    >
+                      {chip.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-3 border border-[#c3c4c7]">
+                <div className="relative flex-1 w-full">
+                  <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                  <Input
+                    placeholder="Search patient name, phone, clinic, or service..."
+                    value={searchInquiriesQuery}
+                    onChange={(e) => setSearchInquiriesQuery(e.target.value)}
+                    className="pl-9 h-8 text-xs"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <span className="text-xs font-semibold text-slate-600">Status:</span>
+                  <select
+                    value={statusInquiriesFilter}
+                    onChange={(e) => setStatusInquiriesFilter(e.target.value)}
+                    className="rounded border border-input p-1.5 text-xs bg-white"
+                  >
+                    <option value="All">All Inquiries</option>
+                    <option value="New">New</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Mobile Inquiries Card View (Phone Friendly) */}
+              <div className="space-y-3 md:hidden">
+                {filteredBookings.length === 0 ? (
+                  <div className="border border-[#c3c4c7] bg-white p-6 text-center text-xs text-slate-400">
+                    No inquiries match the current search or filter.
+                  </div>
+                ) : (
+                  filteredBookings.map((b) => (
+                    <div
+                      key={b.id}
+                      className="border border-[#c3c4c7] bg-white p-4 rounded-sm shadow-xs space-y-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="font-bold text-sm text-[#1d2327]">
+                            {b.patientName}
+                          </div>
                           <a
                             href={`tel:${b.phone}`}
-                            className="text-[#2271b1] hover:underline"
+                            className="text-xs text-[#2271b1] font-semibold"
                           >
                             {b.phone}
                           </a>
-                        </td>
-                        <td className="py-3 px-4">{b.clinic}</td>
-                        <td className="py-3 px-4">{b.service}</td>
-                        <td className="py-3 px-4">
-                          {b.preferredDate} ({b.preferredTimeSlot})
-                        </td>
-                        <td className="py-3 px-4">
-                          <select
-                            value={b.status}
-                            onChange={(e) =>
-                              cms.updateBookingStatus(
-                                b.id,
-                                e.target.value as any
-                              )
+                        </div>
+                        <select
+                          value={b.status}
+                          onChange={(e) =>
+                            cms.updateBookingStatus(b.id, e.target.value as any)
+                          }
+                          className={`rounded border px-2 py-1 text-[11px] font-bold ${
+                            b.status === "New"
+                              ? "bg-amber-50 text-amber-800 border-amber-300"
+                              : b.status === "Confirmed"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                              : b.status === "Completed"
+                              ? "bg-blue-50 text-blue-800 border-blue-300"
+                              : "bg-slate-100 text-slate-600 border-slate-300"
+                          }`}
+                        >
+                          <option value="New">New</option>
+                          <option value="Confirmed">Confirmed</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </div>
+
+                      <div className="rounded bg-slate-50 p-2.5 text-xs space-y-1 border border-slate-100">
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Care:</span>
+                          <span className="font-bold">{b.service}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Clinic:</span>
+                          <span>{b.clinic}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-700">
+                          <span className="font-medium text-slate-500">Slot:</span>
+                          <span>{b.preferredDate} ({b.preferredTimeSlot})</span>
+                        </div>
+                        {b.notes && (
+                          <div className="pt-1 text-[11px] text-slate-600 italic">
+                            Patient note: "{b.notes}"
+                          </div>
+                        )}
+                        {b.doctorNotes && (
+                          <div className="pt-1 text-[11px] font-semibold text-primary">
+                            Dr note: {b.doctorNotes}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          onClick={() => openWhatsAppModal(b)}
+                          className="flex items-center justify-center gap-1.5 rounded bg-[#25D366] py-2 text-xs font-bold text-white shadow-xs hover:bg-[#1ebe5d]"
+                        >
+                          <FaWhatsapp size={15} /> WhatsApp
+                        </button>
+                        <button
+                          onClick={() => openEditBooking(b)}
+                          className="flex items-center justify-center gap-1.5 rounded border border-slate-300 bg-white py-2 text-xs font-semibold text-[#2271b1] hover:bg-slate-50"
+                        >
+                          <FileEdit size={13} /> Edit
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[11px]">
+                        <a
+                          href={`tel:${b.phone}`}
+                          className="inline-flex items-center gap-1 text-slate-700 hover:text-[#2271b1] font-medium"
+                        >
+                          <Phone size={12} /> Call Patient
+                        </a>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete inquiry for ${b.patientName}?`)) {
+                              cms.deleteBooking(b.id);
+                              toast.success("Inquiry removed");
                             }
-                            className="rounded border border-slate-200 px-2 py-1 text-[11px] font-semibold"
-                          >
-                            <option value="New">New</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Cancelled">Cancelled</option>
-                          </select>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            onClick={() => {
-                              if (confirm(`Delete inquiry for ${b.patientName}?`)) {
-                                cms.deleteBooking(b.id);
-                                toast.success("Inquiry removed");
-                              }
-                            }}
-                            className="text-[#d63638] hover:underline"
-                          >
-                            Delete
-                          </button>
+                          }}
+                          className="text-rose-600 hover:underline flex items-center gap-1"
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Desktop Inquiries Table */}
+              <div className="hidden md:block border border-[#c3c4c7] bg-white shadow-xs overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="border-b border-[#c3c4c7] bg-[#f6f7f7] text-[#50575e]">
+                      <th className="py-2.5 px-4">Date</th>
+                      <th className="py-2.5 px-4">Patient</th>
+                      <th className="py-2.5 px-4">Phone</th>
+                      <th className="py-2.5 px-4">Clinic & Type</th>
+                      <th className="py-2.5 px-4">Requested Care</th>
+                      <th className="py-2.5 px-4">Preferred Slot</th>
+                      <th className="py-2.5 px-4">Status</th>
+                      <th className="py-2.5 px-4 text-right">Quick Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredBookings.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-8 text-center text-slate-400">
+                          No inquiries match the current search or filter.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredBookings.map((b) => {
+                        return (
+                          <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50/80">
+                            <td className="py-3 px-4 text-[#646970] whitespace-nowrap">{b.createdAt}</td>
+                            <td className="py-3 px-4 font-bold text-[#1d2327]">
+                              <div>{b.patientName}</div>
+                              {b.notes && (
+                                <div className="text-[11px] font-normal text-slate-500 italic truncate max-w-xs">
+                                  "{b.notes}"
+                                </div>
+                              )}
+                              {b.doctorNotes && (
+                                <div className="mt-0.5 inline-block rounded bg-primary/10 px-1.5 py-0.2 text-[10px] font-semibold text-primary">
+                                  Dr: {b.doctorNotes}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <a
+                                href={`tel:${b.phone}`}
+                                className="text-[#2271b1] hover:underline font-semibold"
+                              >
+                                {b.phone}
+                              </a>
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <div className="font-medium text-slate-800">{b.clinic}</div>
+                              <span className="text-[10px] text-muted-foreground">
+                                {b.appointmentType || "Clinic Visit"}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap font-medium text-slate-800">
+                              {b.service}
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              {b.preferredDate} <span className="text-slate-400">({b.preferredTimeSlot})</span>
+                            </td>
+                            <td className="py-3 px-4 whitespace-nowrap">
+                              <select
+                                value={b.status}
+                                onChange={(e) =>
+                                  cms.updateBookingStatus(b.id, e.target.value as any)
+                                }
+                                className={`rounded border px-2 py-1 text-[11px] font-bold ${
+                                  b.status === "New"
+                                    ? "bg-amber-50 text-amber-800 border-amber-300"
+                                    : b.status === "Confirmed"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                    : b.status === "Completed"
+                                    ? "bg-blue-50 text-blue-800 border-blue-300"
+                                    : "bg-slate-100 text-slate-600 border-slate-300"
+                                }`}
+                              >
+                                <option value="New">New</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                              </select>
+                            </td>
+                            <td className="py-3 px-4 text-right whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-2">
+                                {/* WhatsApp Assistant Modal Trigger */}
+                                <button
+                                  onClick={() => openWhatsAppModal(b)}
+                                  className="inline-flex items-center gap-1 rounded bg-[#25D366] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs hover:bg-[#1ebe5d]"
+                                  title="Send WhatsApp confirmation or reminder"
+                                >
+                                  <FaWhatsapp size={13} /> WhatsApp
+                                </button>
+
+                                {/* Edit Patient & Doctor Notes */}
+                                <button
+                                  onClick={() => openEditBooking(b)}
+                                  className="inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-1 text-[11px] font-semibold text-[#2271b1] hover:bg-slate-50"
+                                  title="Edit appointment, fee, or clinical notes"
+                                >
+                                  <FileEdit size={12} /> Edit
+                                </button>
+
+                                {/* Call Button */}
+                                <a
+                                  href={`tel:${b.phone}`}
+                                  className="inline-flex items-center rounded border border-slate-200 bg-white p-1 text-slate-700 hover:bg-slate-50"
+                                  title="Call patient"
+                                >
+                                  <Phone size={13} />
+                                </a>
+
+                                {/* Delete */}
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Delete inquiry for ${b.patientName}?`)) {
+                                      cms.deleteBooking(b.id);
+                                      toast.success("Inquiry removed");
+                                    }
+                                  }}
+                                  className="text-slate-400 hover:text-red-500 p-1"
+                                  title="Delete record"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1524,6 +2381,428 @@ function AdminDashboard() {
           )}
         </main>
       </div>
+
+      {/* 1. CLINIC MODAL */}
+      <Dialog open={clinicModalOpen} onOpenChange={setClinicModalOpen}>
+        <DialogContent className="max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {editingClinicId ? "Edit Clinic Details" : "Add New Clinic Location"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Configure clinic location, operational shift hours, and direction map link.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveClinic} className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Clinic Name *</label>
+              <Input
+                required
+                value={clinicForm.name}
+                onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
+                placeholder="e.g. Ali Medical Center"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Address *</label>
+              <Input
+                required
+                value={clinicForm.address}
+                onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })}
+                placeholder="e.g. F-8 Markaz, Islamabad"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Hours Label</label>
+                <Input
+                  value={clinicForm.hours}
+                  onChange={(e) => setClinicForm({ ...clinicForm, hours: e.target.value })}
+                  placeholder="e.g. 9:00 AM – 2:00 PM"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Operating Days</label>
+                <Input
+                  value={clinicForm.days}
+                  onChange={(e) => setClinicForm({ ...clinicForm, days: e.target.value })}
+                  placeholder="e.g. Mon – Sat"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Open Hour (24h format)</label>
+                <Input
+                  type="number"
+                  value={clinicForm.openHour}
+                  onChange={(e) =>
+                    setClinicForm({ ...clinicForm, openHour: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Close Hour (24h format)</label>
+                <Input
+                  type="number"
+                  value={clinicForm.closeHour}
+                  onChange={(e) =>
+                    setClinicForm({ ...clinicForm, closeHour: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Direct Clinic Phone / Desk Ext (Optional)</label>
+              <Input
+                value={clinicForm.phone}
+                onChange={(e) => setClinicForm({ ...clinicForm, phone: e.target.value })}
+                placeholder="e.g. +92 51 8449900 or +92 300 XXXXXXX"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Google Maps URL</label>
+              <Input
+                value={clinicForm.mapsUrl}
+                onChange={(e) => setClinicForm({ ...clinicForm, mapsUrl: e.target.value })}
+                placeholder="https://maps.google.com/?q=..."
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setClinicModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Save Clinic
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 2. QUALIFICATION MODAL */}
+      <Dialog open={qualificationModalOpen} onOpenChange={setQualificationModalOpen}>
+        <DialogContent className="max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {editingQualificationId ? "Edit Degree Qualification" : "Add New Academic Degree"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Degrees, fellowships, and clinical postgraduate diplomas.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveQualification} className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Degree Title *</label>
+              <Input
+                required
+                value={qualificationForm.title}
+                onChange={(e) =>
+                  setQualificationForm({ ...qualificationForm, title: e.target.value })
+                }
+                placeholder="e.g. Doctor of Physiotherapy (DPT)"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">University / Institution *</label>
+              <Input
+                required
+                value={qualificationForm.institution}
+                onChange={(e) =>
+                  setQualificationForm({ ...qualificationForm, institution: e.target.value })
+                }
+                placeholder="e.g. AUST, Abbottabad"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Status / Year</label>
+              <Input
+                value={qualificationForm.year}
+                onChange={(e) =>
+                  setQualificationForm({ ...qualificationForm, year: e.target.value })
+                }
+                placeholder="e.g. Completed, Ongoing, 2024"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setQualificationModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Save Degree
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 3. CERTIFICATION MODAL */}
+      <Dialog open={certificationModalOpen} onOpenChange={setCertificationModalOpen}>
+        <DialogContent className="max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {editingCertificationId ? "Edit Certification" : "Add Specialized Certification"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Clinical sport diplomas, kinesiology taping, strength & conditioning certifications.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveCertification} className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Certification Title *</label>
+              <Input
+                required
+                value={certificationForm.title}
+                onChange={(e) =>
+                  setCertificationForm({ ...certificationForm, title: e.target.value })
+                }
+                placeholder="e.g. Diploma in Football Medicine"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Issuing Authority / Council *</label>
+              <Input
+                required
+                value={certificationForm.issuer}
+                onChange={(e) =>
+                  setCertificationForm({ ...certificationForm, issuer: e.target.value })
+                }
+                placeholder="e.g. FIFA, OMT"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCertificationModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Save Certification
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 4. LICENSE MODAL */}
+      <Dialog open={licenseModalOpen} onOpenChange={setLicenseModalOpen}>
+        <DialogContent className="max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {editingLicenseId ? "Edit Medical License" : "Add International Medical License"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Official healthcare registration council credentials.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveLicense} className="mt-3 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">License Code *</label>
+                <Input
+                  required
+                  value={licenseForm.code}
+                  onChange={(e) =>
+                    setLicenseForm({ ...licenseForm, code: e.target.value })
+                  }
+                  placeholder="e.g. CORU"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Region / Country *</label>
+                <Input
+                  required
+                  value={licenseForm.region}
+                  onChange={(e) =>
+                    setLicenseForm({ ...licenseForm, region: e.target.value })
+                  }
+                  placeholder="e.g. Ireland"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Full Council Name</label>
+              <Input
+                value={licenseForm.fullName}
+                onChange={(e) =>
+                  setLicenseForm({ ...licenseForm, fullName: e.target.value })
+                }
+                placeholder="e.g. Health & Social Care Professionals Council"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setLicenseModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Save License
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 5. MANUAL BOOKING MODAL */}
+      <Dialog open={manualBookingModalOpen} onOpenChange={setManualBookingModalOpen}>
+        <DialogContent className="max-w-md rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Record Patient Appointment</DialogTitle>
+            <DialogDescription className="text-xs">
+              Record a phone or walk-in patient consultation in the clinic register.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveManualBooking} className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Patient Name *</label>
+              <Input
+                required
+                value={manualBookingForm.patientName}
+                onChange={(e) =>
+                  setManualBookingForm({ ...manualBookingForm, patientName: e.target.value })
+                }
+                placeholder="e.g. Tariq Mehmood"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Patient Phone *</label>
+              <Input
+                required
+                value={manualBookingForm.phone}
+                onChange={(e) =>
+                  setManualBookingForm({ ...manualBookingForm, phone: e.target.value })
+                }
+                placeholder="+92 3XX XXXXXXX"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Clinic</label>
+                <select
+                  value={manualBookingForm.clinic}
+                  onChange={(e) =>
+                    setManualBookingForm({ ...manualBookingForm, clinic: e.target.value })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs"
+                >
+                  {(data.clinics || []).map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Care / Specialty</label>
+                <select
+                  value={manualBookingForm.service}
+                  onChange={(e) =>
+                    setManualBookingForm({ ...manualBookingForm, service: e.target.value })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs"
+                >
+                  {(data.services || []).map((s) => (
+                    <option key={s.id} value={s.title}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Appointment Date</label>
+                <Input
+                  type="date"
+                  value={manualBookingForm.preferredDate}
+                  onChange={(e) =>
+                    setManualBookingForm({ ...manualBookingForm, preferredDate: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Time Window</label>
+                <Input
+                  value={manualBookingForm.preferredTimeSlot}
+                  onChange={(e) =>
+                    setManualBookingForm({
+                      ...manualBookingForm,
+                      preferredTimeSlot: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Condition / Doctor Notes</label>
+              <Textarea
+                rows={2}
+                value={manualBookingForm.notes}
+                onChange={(e) =>
+                  setManualBookingForm({ ...manualBookingForm, notes: e.target.value })
+                }
+                placeholder="Initial diagnosis or patient symptoms..."
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setManualBookingModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Record Patient
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* SERVICE MODAL */}
       <Dialog open={serviceModalOpen} onOpenChange={setServiceModalOpen}>
@@ -1683,9 +2962,11 @@ function AdminDashboard() {
 
       {/* TESTIMONIAL MODAL */}
       <Dialog open={testimonialModalOpen} onOpenChange={setTestimonialModalOpen}>
-        <DialogContent className="max-w-md rounded-lg">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Add Patient Review</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              {editingTestimonialId ? "Edit Patient Review" : "Add Patient Review"}
+            </DialogTitle>
             <DialogDescription className="text-xs">
               Add positive patient feedback to build social proof.
             </DialogDescription>
@@ -1761,8 +3042,454 @@ function AdminDashboard() {
                 Cancel
               </Button>
               <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
-                Add Review
+                {editingTestimonialId ? "Save Review" : "Add Review"}
               </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* PRACTICE STAT / IMPACT METRIC MODAL */}
+      <Dialog open={statModalOpen} onOpenChange={setStatModalOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">
+              {editingStatId ? "Edit Practice Metric" : "Add Practice Metric"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Highlight key accomplishments (e.g. 10+ Years, 1,500+ Patients, 3 Licenses).
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveStat} className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Metric Value *</label>
+              <Input
+                required
+                value={statForm.value}
+                onChange={(e) => setStatForm({ ...statForm, value: e.target.value })}
+                placeholder="e.g. 10+, 1,500+, 3, 99%"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Label / Title *</label>
+              <Input
+                required
+                value={statForm.label}
+                onChange={(e) => setStatForm({ ...statForm, label: e.target.value })}
+                placeholder="e.g. Years Clinical Experience, Patients Treated"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Subtitle / Description</label>
+              <Input
+                value={statForm.description}
+                onChange={(e) => setStatForm({ ...statForm, description: e.target.value })}
+                placeholder="e.g. In hospital & outpatient rehabilitation"
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setStatModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                {editingStatId ? "Save Metric" : "Add Metric"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT PATIENT INQUIRY & DOCTOR NOTES MODAL */}
+      <Dialog open={bookingEditModalOpen} onOpenChange={setBookingEditModalOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <FileEdit className="text-[#2271b1]" size={18} />
+              Edit Patient Appointment Details
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Update booking schedule, appointment status, consultation type, and doctor notes.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveBookingEdit} className="mt-3 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Patient Name *</label>
+                <Input
+                  required
+                  value={bookingEditForm.patientName}
+                  onChange={(e) =>
+                    setBookingEditForm({ ...bookingEditForm, patientName: e.target.value })
+                  }
+                  placeholder="Patient Name"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Patient Phone *</label>
+                <Input
+                  required
+                  value={bookingEditForm.phone}
+                  onChange={(e) =>
+                    setBookingEditForm({ ...bookingEditForm, phone: e.target.value })
+                  }
+                  placeholder="+92 3XX XXXXXXX"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Clinic</label>
+                <select
+                  value={bookingEditForm.clinic}
+                  onChange={(e) =>
+                    setBookingEditForm({ ...bookingEditForm, clinic: e.target.value })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white"
+                >
+                  {(data.clinics || []).map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Service / Treatment</label>
+                <select
+                  value={bookingEditForm.service}
+                  onChange={(e) =>
+                    setBookingEditForm({ ...bookingEditForm, service: e.target.value })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white"
+                >
+                  {(data.services || []).map((s) => (
+                    <option key={s.id} value={s.title}>
+                      {s.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Appointment Date</label>
+                <Input
+                  type="date"
+                  value={bookingEditForm.preferredDate}
+                  onChange={(e) =>
+                    setBookingEditForm({ ...bookingEditForm, preferredDate: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Preferred Time Window</label>
+                <Input
+                  value={bookingEditForm.preferredTimeSlot}
+                  onChange={(e) =>
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      preferredTimeSlot: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. Morning (10:00 AM – 01:00 PM)"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Status</label>
+                <select
+                  value={bookingEditForm.status}
+                  onChange={(e) =>
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      status: e.target.value as any,
+                    })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white font-semibold"
+                >
+                  <option value="New">New</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Care Type</label>
+                <select
+                  value={bookingEditForm.appointmentType}
+                  onChange={(e) =>
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      appointmentType: e.target.value as any,
+                    })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white"
+                >
+                  <option value="Clinic Visit">Clinic Visit</option>
+                  <option value="Home Rehab">Home Rehab</option>
+                  <option value="Online Consultation">Online Consultation</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold">Fee Status</label>
+                <select
+                  value={bookingEditForm.feeStatus}
+                  onChange={(e) =>
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      feeStatus: e.target.value as any,
+                    })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Waived">Waived</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold">Patient's Stated Issue</label>
+              <Textarea
+                rows={2}
+                value={bookingEditForm.notes}
+                onChange={(e) =>
+                  setBookingEditForm({ ...bookingEditForm, notes: e.target.value })
+                }
+                placeholder="Patient's reported complaint or inquiry..."
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-primary">Doctor Clinical Notes / Diagnosis</label>
+              <Textarea
+                rows={2}
+                value={bookingEditForm.doctorNotes}
+                onChange={(e) =>
+                  setBookingEditForm({ ...bookingEditForm, doctorNotes: e.target.value })
+                }
+                placeholder="Doctor's notes, recommended sessions, diagnosis, follow-up..."
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setBookingEditModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* WHATSAPP TEMPLATE ASSISTANT MODAL */}
+      <Dialog open={waModalOpen} onOpenChange={setWaModalOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <FaWhatsapp className="text-[#25D366]" size={20} />
+              WhatsApp Message Assistant
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Quick 1-tap WhatsApp message templates for {selectedWaBooking?.patientName || "Patient"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedWaBooking && (
+            <div className="mt-3 space-y-4">
+              <div className="rounded bg-slate-50 p-3 text-xs border border-slate-200">
+                <div className="font-semibold text-slate-800">
+                  Patient: <span className="font-bold">{selectedWaBooking.patientName}</span> ({selectedWaBooking.phone})
+                </div>
+                <div className="text-slate-600 mt-0.5">
+                  Clinic: {selectedWaBooking.clinic} | Slot: {selectedWaBooking.preferredDate} ({selectedWaBooking.preferredTimeSlot})
+                </div>
+              </div>
+
+              {/* Template Buttons */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-bold text-slate-700">Choose Message Template:</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const msg = `Hello ${selectedWaBooking.patientName}, this is Dr. Farhan Badshah's physiotherapy clinic. We have confirmed your appointment for *${selectedWaBooking.service}* at *${selectedWaBooking.clinic}* on *${selectedWaBooking.preferredDate}* (${selectedWaBooking.preferredTimeSlot}). Please arrive 5 minutes early.`;
+                      setCustomWaMessage(msg);
+                    }}
+                    className="p-2.5 rounded border border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 text-left text-xs font-medium text-emerald-900 transition-colors"
+                  >
+                    🟢 Appointment Confirmed
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const msg = `Friendly reminder from Dr. Farhan Badshah's physiotherapy clinic: Your appointment for *${selectedWaBooking.service}* is scheduled for tomorrow at *${selectedWaBooking.clinic}* (${selectedWaBooking.preferredTimeSlot}). Please confirm your attendance.`;
+                      setCustomWaMessage(msg);
+                    }}
+                    className="p-2.5 rounded border border-amber-200 bg-amber-50/70 hover:bg-amber-100 text-left text-xs font-medium text-amber-900 transition-colors"
+                  >
+                    ⏰ Tomorrow's Reminder
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const clinic = (data.clinics || []).find((c) => c.name === selectedWaBooking.clinic);
+                      const mapLink = clinic?.mapsUrl || "https://maps.google.com/?q=Islamabad";
+                      const msg = `Location directions for Dr. Farhan Badshah's clinic at *${selectedWaBooking.clinic}*:\nAddress: ${clinic?.address || selectedWaBooking.clinic}\nGoogle Maps: ${mapLink}`;
+                      setCustomWaMessage(msg);
+                    }}
+                    className="p-2.5 rounded border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-left text-xs font-medium text-blue-900 transition-colors"
+                  >
+                    📍 Clinic Directions & Map
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const msg = `Hello ${selectedWaBooking.patientName}, Dr. Farhan Badshah checking in after your therapy session today. How are your symptoms feeling? Please remember to follow your home exercise guidelines.`;
+                      setCustomWaMessage(msg);
+                    }}
+                    className="p-2.5 rounded border border-purple-200 bg-purple-50/70 hover:bg-purple-100 text-left text-xs font-medium text-purple-900 transition-colors"
+                  >
+                    🩹 Post-Session Recovery Check
+                  </button>
+                </div>
+              </div>
+
+              {/* Editable Message Box */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Message Preview (Editable):</label>
+                <Textarea
+                  rows={4}
+                  value={customWaMessage}
+                  onChange={(e) => setCustomWaMessage(e.target.value)}
+                  className="text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(customWaMessage, "WhatsApp message")}
+                  className="text-xs"
+                >
+                  <Copy size={13} className="mr-1" /> Copy Text
+                </Button>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const cleanPhone = selectedWaBooking.phone.replace(/[^0-9]/g, "");
+                    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(customWaMessage)}`;
+                    window.open(url, "_blank");
+                    cms.updateBookingStatus(selectedWaBooking.id, "Confirmed");
+                    toast.success("Opening WhatsApp & marked as Confirmed!");
+                    setWaModalOpen(false);
+                  }}
+                  className="bg-[#25D366] hover:bg-[#1ebe5d] text-white text-xs font-bold"
+                >
+                  <FaWhatsapp size={15} className="mr-1.5" /> Send via WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SECURITY / PASSWORD SETTINGS MODAL */}
+      <Dialog open={securityModalOpen} onOpenChange={setSecurityModalOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <KeyRound className="text-[#2271b1]" size={18} />
+              Admin Credentials & Security
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Change your username and login password. Saved securely in your browser's private store.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveSecuritySettings} className="mt-3 space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Admin Username *</label>
+              <Input
+                required
+                value={newAdminUser}
+                onChange={(e) => setNewAdminUser(e.target.value)}
+                placeholder="admin"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">New Password *</label>
+              <Input
+                type="password"
+                required
+                value={newAdminPass}
+                onChange={(e) => setNewAdminPass(e.target.value)}
+                placeholder="Choose a strong password"
+              />
+            </div>
+
+            <div className="rounded bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-900 leading-snug">
+              Tip: Remember your new credentials. You can also reset back to default (<code className="font-bold">admin / drfarhan2026</code>) at any time.
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleResetSecuritySettings}
+                className="text-xs text-rose-600 hover:underline"
+              >
+                Reset to Default
+              </button>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSecurityModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                  Save Credentials
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -1770,7 +3497,7 @@ function AdminDashboard() {
 
       {/* GIT EXPORT MODAL */}
       <Dialog open={exportModalOpen} onOpenChange={setExportModalOpen}>
-        <DialogContent className="max-w-2xl rounded-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <Code2 className="text-[#2271b1]" />
@@ -1817,6 +3544,53 @@ function AdminDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Bottom Navigation Bar (Thumb Friendly on Phones) */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 flex h-14 items-center justify-around border-t border-[#c3c4c7]/50 bg-[#1d2327] px-2 text-white md:hidden shadow-lg">
+        {[
+          { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+          {
+            id: "bookings",
+            label: "Inquiries",
+            icon: Calendar,
+            count: (data.bookings || []).filter((b) => b.status === "New").length,
+          },
+          { id: "clinics", label: "Clinics", icon: MapPin },
+          { id: "credentials", label: "Degrees", icon: GraduationCap },
+          { id: "menu", label: "Menu", icon: Menu, isMenuTrigger: true },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.isMenuTrigger) {
+                  setMobileMenuOpen(!mobileMenuOpen);
+                } else {
+                  setActiveTab(item.id as AdminTab);
+                  setMobileMenuOpen(false);
+                }
+              }}
+              className={`relative flex flex-col items-center justify-center gap-0.5 py-1 px-2.5 text-[10px] transition-colors ${
+                isActive && !item.isMenuTrigger
+                  ? "text-[#72aee6] font-bold"
+                  : "text-[#c3c4c7] hover:text-white"
+              }`}
+            >
+              <div className="relative">
+                <Icon size={18} />
+                {item.count !== undefined && item.count > 0 && (
+                  <span className="absolute -top-1.5 -right-2 grid h-4 w-4 place-items-center rounded-full bg-[#d63638] text-[9px] font-black text-white">
+                    {item.count}
+                  </span>
+                )}
+              </div>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }
