@@ -250,7 +250,7 @@ function AdminDashboard() {
       setLoginError("");
       toast.success("Welcome to DocFolio Admin Dashboard");
     } else {
-      setLoginError("Invalid username or password. (Default: admin / drfarhan2026)");
+      setLoginError("Invalid username or password. Please try again.");
       toast.error("Incorrect credentials");
     }
   };
@@ -774,16 +774,6 @@ function AdminDashboard() {
                   onChange={(e) => setLoginPass(e.target.value)}
                   className="rounded border-[#8c8f94] focus-visible:ring-[#2271b1]"
                 />
-              </div>
-
-              <div className="rounded border border-primary/20 bg-primary/5 p-3 text-[11px] text-[#2c3338]">
-                <div className="font-bold flex items-center gap-1 text-primary">
-                  <KeyRound size={12} /> Default Credentials:
-                </div>
-                <div className="mt-0.5">
-                  User: <span className="font-mono font-bold">admin</span> | Pass:{" "}
-                  <span className="font-mono font-bold">drfarhan2026</span>
-                </div>
               </div>
 
               <Button
