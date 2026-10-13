@@ -105,7 +105,7 @@ export function Footer({ onOpenBooking }: FooterProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-2">
+            <div className="flex items-center px-2">
               <div className="flex items-center gap-4">
                 <span className="text-xs uppercase tracking-widest text-white/60">Follow</span>
                 <div className="flex items-center gap-3">
@@ -154,14 +154,6 @@ export function Footer({ onOpenBooking }: FooterProps) {
                   )}
                 </div>
               </div>
-
-              {/* Discreet CMS Link */}
-              <Link
-                to="/admin"
-                className="text-xs text-white/40 hover:text-white/80 transition-colors flex items-center gap-1.5"
-              >
-                <span>⚙️ CMS Portal</span>
-              </Link>
             </div>
           </div>
         </div>

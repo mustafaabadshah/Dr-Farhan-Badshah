@@ -66,15 +66,6 @@ export function Navigation({ onOpenBooking }: NavigationProps) {
               </a>
             </Button>
           )}
-
-          <Link
-            to="/admin"
-            className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted/30 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/40 hover:bg-white hover:text-foreground"
-            title="Custom WordPress-like CMS Dashboard"
-          >
-            <Settings size={13} />
-            <span>CMS</span>
-          </Link>
         </div>
 
         <button
@@ -105,7 +96,7 @@ export function Navigation({ onOpenBooking }: NavigationProps) {
               {link.label}
             </a>
           ))}
-          <div className="pt-2 flex flex-col gap-2">
+          <div className="pt-2">
             {onOpenBooking ? (
               <Button
                 onClick={() => {
@@ -129,14 +120,6 @@ export function Navigation({ onOpenBooking }: NavigationProps) {
                 </a>
               </Button>
             )}
-            <Link
-              to="/admin"
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-center gap-1.5 rounded-full border border-border/60 bg-muted/40 py-2 text-xs font-semibold text-foreground"
-            >
-              <Settings size={13} />
-              <span>WordPress-like CMS Dashboard</span>
-            </Link>
           </div>
         </nav>
       </div>

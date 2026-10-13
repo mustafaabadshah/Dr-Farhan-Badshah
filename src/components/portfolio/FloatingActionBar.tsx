@@ -61,16 +61,6 @@ export function FloatingActionBar({ onOpenBooking }: FloatingActionBarProps) {
       >
         <Calendar size={16} /> Book Appointment
       </button>
-
-      {/* Admin Dashboard Quick Link */}
-      <Link
-        to="/admin"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 bg-white/80 text-muted-foreground shadow-sm backdrop-blur transition hover:text-foreground hover:scale-105"
-        title="WordPress-like Admin CMS Dashboard"
-        aria-label="Admin Dashboard"
-      >
-        <Settings size={15} />
-      </Link>
     </aside>
   );
 }

@@ -422,7 +422,23 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { ...INITIAL_DATA, ...parsed };
+        return {
+          ...INITIAL_DATA,
+          ...parsed,
+          seo: { ...INITIAL_DATA.seo, ...(parsed?.seo || {}) },
+          hero: { ...INITIAL_DATA.hero, ...(parsed?.hero || {}) },
+          contact: { ...INITIAL_DATA.contact, ...(parsed?.contact || {}) },
+          bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : INITIAL_DATA.bio,
+          services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : INITIAL_DATA.services,
+          clinics: Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics,
+          qualifications: Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications,
+          certifications: Array.isArray(parsed?.certifications) && parsed.certifications.length > 0 ? parsed.certifications : INITIAL_DATA.certifications,
+          licenses: Array.isArray(parsed?.licenses) && parsed.licenses.length > 0 ? parsed.licenses : INITIAL_DATA.licenses,
+          testimonials: Array.isArray(parsed?.testimonials) && parsed.testimonials.length > 0 ? parsed.testimonials : INITIAL_DATA.testimonials,
+          faqs: Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : INITIAL_DATA.faqs,
+          stats: Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : INITIAL_DATA.stats,
+          bookings: Array.isArray(parsed?.bookings) ? parsed.bookings : INITIAL_DATA.bookings,
+        };
       }
     } catch (e) {
       console.warn("Could not load CMS data from localStorage", e);

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
@@ -18,6 +18,8 @@ import {
   Layers,
   LayoutDashboard,
   type LucideIcon,
+  Lock,
+  LogOut,
   MapPin,
   Menu,
   MessageSquare,
@@ -33,6 +35,7 @@ import {
   Upload,
   User,
   X,
+  KeyRound,
 } from "lucide-react";
 import { useCMS, type ServiceItem, type ClinicItem, type FAQItem, type TestimonialItem } from "@/lib/cms-store";
 import { Button } from "@/components/ui/button";
@@ -64,9 +67,20 @@ type AdminTab =
   | "bookings"
   | "export";
 
+const AUTH_STORAGE_KEY = "docfolio_admin_auth_session";
+
 function AdminDashboard() {
   const cms = useCMS();
   const { data } = cms;
+
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(AUTH_STORAGE_KEY) === "true";
+  });
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -106,6 +120,25 @@ function AdminDashboard() {
 
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginUser.trim().toLowerCase() === "admin" && loginPass === "drfarhan2026") {
+      setIsAuthenticated(true);
+      sessionStorage.setItem(AUTH_STORAGE_KEY, "true");
+      setLoginError("");
+      toast.success("Welcome to DocFolio Admin Dashboard");
+    } else {
+      setLoginError("Invalid username or password. Default: admin / drfarhan2026");
+      toast.error("Incorrect credentials");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    toast.info("Logged out successfully");
+  };
+
   // Service modal helpers
   const openNewService = () => {
     setEditingServiceId(null);
@@ -121,10 +154,10 @@ function AdminDashboard() {
   const openEditService = (srv: ServiceItem) => {
     setEditingServiceId(srv.id);
     setServiceForm({
-      title: srv.title,
-      description: srv.description,
-      category: srv.category,
-      icon: srv.icon,
+      title: srv.title || "",
+      description: srv.description || "",
+      category: srv.category || "General",
+      icon: srv.icon || "Activity",
     });
     setServiceModalOpen(true);
   };
@@ -154,7 +187,7 @@ function AdminDashboard() {
 
   const openEditFaq = (f: FAQItem) => {
     setEditingFaqId(f.id);
-    setFaqForm({ question: f.question, answer: f.answer, category: f.category });
+    setFaqForm({ question: f.question || "", answer: f.answer || "", category: f.category || "Appointments" });
     setFaqModalOpen(true);
   };
 
@@ -183,7 +216,7 @@ function AdminDashboard() {
     }
     cms.addTestimonial({
       ...testimonialForm,
-      initial: testimonialForm.name.trim()[0].toUpperCase(),
+      initial: testimonialForm.name.trim()[0]?.toUpperCase() || "P",
     });
     toast.success("Patient testimonial added");
     setTestimonialModalOpen(false);
@@ -217,12 +250,104 @@ function AdminDashboard() {
     "Target",
   ];
 
+  // ==========================================
+  // WORDPRESS AUTHENTICATION SCREEN (LOGIN)
+  // ==========================================
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f0f0f1] px-4 font-sans text-[#2c3338]">
+        <div className="w-full max-w-sm">
+          {/* WordPress / DocFolio Logo */}
+          <div className="mb-6 text-center">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#2271b1] text-2xl font-black text-white shadow-md shadow-[#2271b1]/30">
+              W
+            </div>
+            <h1 className="mt-3 font-display text-xl font-bold tracking-tight text-[#1d2327]">
+              DocFolio Admin Portal
+            </h1>
+            <p className="text-xs text-[#50575e]">
+              Dr. Farhan Badshah — Content Management System
+            </p>
+          </div>
+
+          {/* Login Card */}
+          <div className="rounded-sm border border-[#c3c4c7] bg-white p-7 shadow-sm">
+            {loginError && (
+              <div className="mb-4 rounded border-l-4 border-[#d63638] bg-[#fcf0f1] p-3 text-xs text-[#d63638]">
+                {loginError}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#1d2327]">
+                  Username or Email Address
+                </label>
+                <Input
+                  required
+                  autoFocus
+                  placeholder="admin"
+                  value={loginUser}
+                  onChange={(e) => setLoginUser(e.target.value)}
+                  className="rounded border-[#8c8f94] focus-visible:ring-[#2271b1]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#1d2327]">
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  required
+                  placeholder="••••••••••••"
+                  value={loginPass}
+                  onChange={(e) => setLoginPass(e.target.value)}
+                  className="rounded border-[#8c8f94] focus-visible:ring-[#2271b1]"
+                />
+              </div>
+
+              <div className="rounded border border-primary/20 bg-primary/5 p-3 text-[11px] text-[#2c3338]">
+                <div className="font-bold flex items-center gap-1 text-primary">
+                  <KeyRound size={12} /> Default Credentials:
+                </div>
+                <div className="mt-0.5">
+                  User: <span className="font-mono font-bold">admin</span> | Pass:{" "}
+                  <span className="font-mono font-bold">drfarhan2026</span>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full rounded bg-[#2271b1] py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#135e96]"
+              >
+                <Lock size={14} className="mr-2" /> Log In to CMS
+              </Button>
+            </form>
+          </div>
+
+          <div className="mt-6 text-center text-xs">
+            <Link
+              to="/"
+              className="text-[#2271b1] hover:text-[#135e96] hover:underline flex items-center justify-center gap-1"
+            >
+              ← Back to Dr. Farhan Badshah Website
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // AUTHENTICATED WORDPRESS ADMIN PANEL
+  // ==========================================
   return (
     <div className="min-h-screen bg-[#f0f0f1] text-[#2c3338] font-sans antialiased">
       {/* 1. WordPress Admin Top Bar */}
       <header className="sticky top-0 z-50 flex h-10 w-full items-center justify-between bg-[#1d2327] px-3 text-white text-xs shadow-sm">
         <div className="flex items-center gap-3">
-          {/* WordPress / Custom CMS Logo */}
+          {/* Logo */}
           <div className="flex items-center gap-1.5 font-bold tracking-tight text-white hover:text-[#72aee6] transition-colors cursor-pointer">
             <span className="grid h-6 w-6 place-items-center rounded bg-[#2271b1] text-xs font-black text-white">
               W
@@ -239,18 +364,18 @@ function AdminDashboard() {
             className="flex items-center gap-1 text-white/80 hover:text-white transition-colors"
           >
             <Home size={13} />
-            <span className="hidden md:inline">{data.hero.name}</span>
+            <span className="hidden md:inline">{data.hero?.name || "Dr. Farhan Badshah"}</span>
             <span className="text-[11px] text-white/60">↗ Visit Site</span>
           </Link>
 
           {/* New Bookings notification badge */}
-          {data.bookings.filter((b) => b.status === "New").length > 0 && (
+          {(data.bookings || []).filter((b) => b.status === "New").length > 0 && (
             <button
               onClick={() => setActiveTab("bookings")}
               className="flex items-center gap-1 rounded bg-[#d63638] px-2 py-0.5 text-[11px] font-bold text-white hover:bg-[#b32d2e]"
             >
               <Calendar size={11} />
-              <span>{data.bookings.filter((b) => b.status === "New").length} New Inquiries</span>
+              <span>{(data.bookings || []).filter((b) => b.status === "New").length} New Inquiries</span>
             </button>
           )}
         </div>
@@ -284,6 +409,15 @@ function AdminDashboard() {
             <span className="hidden sm:inline">Reset</span>
           </button>
 
+          <button
+            onClick={handleLogout}
+            className="text-white/70 hover:text-red-400 text-[11px] flex items-center gap-1 pl-2 border-l border-white/20"
+            title="Lock & Log Out"
+          >
+            <LogOut size={12} />
+            <span className="hidden sm:inline">Log Out</span>
+          </button>
+
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -315,7 +449,7 @@ function AdminDashboard() {
                 id: "bookings",
                 label: "Patient Inquiries",
                 icon: Calendar,
-                count: data.bookings.filter((b) => b.status === "New").length,
+                count: (data.bookings || []).filter((b) => b.status === "New").length,
               },
               { id: "export", label: "Tools & Git Export", icon: Settings },
             ].map((item) => {
@@ -354,7 +488,7 @@ function AdminDashboard() {
           </nav>
         </aside>
 
-        {/* 3. WordPress Main Content Area */}
+        {/* 3. Main Content Area */}
         <main className="flex-1 p-4 md:p-8 max-w-6xl overflow-y-auto">
           {/* TAB 1: DASHBOARD OVERVIEW */}
           {activeTab === "dashboard" && (
@@ -397,7 +531,7 @@ function AdminDashboard() {
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
                   <div className="text-xs font-semibold text-[#646970]">Active Specialties</div>
                   <div className="mt-2 text-2xl font-bold text-[#1d2327]">
-                    {data.services.length}
+                    {(data.services || []).length}
                   </div>
                   <div className="mt-1 text-[11px] text-[#646970]">Across 5 categories</div>
                 </div>
@@ -405,7 +539,7 @@ function AdminDashboard() {
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
                   <div className="text-xs font-semibold text-[#646970]">Islamabad Clinics</div>
                   <div className="mt-2 text-2xl font-bold text-[#1d2327]">
-                    {data.clinics.length}
+                    {(data.clinics || []).length}
                   </div>
                   <div className="mt-1 text-[11px] text-[#646970]">Live schedule active</div>
                 </div>
@@ -413,10 +547,10 @@ function AdminDashboard() {
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
                   <div className="text-xs font-semibold text-[#646970]">Total Inquiries</div>
                   <div className="mt-2 text-2xl font-bold text-[#2271b1]">
-                    {data.bookings.length}
+                    {(data.bookings || []).length}
                   </div>
                   <div className="mt-1 text-[11px] text-[#646970]">
-                    {data.bookings.filter((b) => b.status === "New").length} new pending
+                    {(data.bookings || []).filter((b) => b.status === "New").length} new pending
                   </div>
                 </div>
               </div>
@@ -475,11 +609,11 @@ function AdminDashboard() {
                     onClick={() => setActiveTab("bookings")}
                     className="text-xs text-[#2271b1] hover:underline"
                   >
-                    View All ({data.bookings.length})
+                    View All ({(data.bookings || []).length})
                   </button>
                 </div>
                 <div className="p-4">
-                  {data.bookings.length === 0 ? (
+                  {(data.bookings || []).length === 0 ? (
                     <div className="text-xs text-[#646970] py-4 text-center">
                       No appointment inquiries yet.
                     </div>
@@ -496,7 +630,7 @@ function AdminDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {data.bookings.slice(0, 5).map((b) => (
+                          {(data.bookings || []).slice(0, 5).map((b) => (
                             <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50">
                               <td className="py-2 font-semibold text-[#1d2327]">{b.patientName}</td>
                               <td className="py-2">{b.phone}</td>
@@ -526,7 +660,7 @@ function AdminDashboard() {
             </div>
           )}
 
-          {/* TAB 2: SEO & METADATA MANAGER (YOAST STYLE) */}
+          {/* TAB 2: SEO & METADATA MANAGER */}
           {activeTab === "seo" && (
             <div className="space-y-6">
               <div className="border-b border-[#c3c4c7]/40 pb-4">
@@ -551,10 +685,10 @@ function AdminDashboard() {
                     <span className="truncate">https://drfarhanbadshah.com</span>
                   </div>
                   <div className="mt-1 text-lg text-[#1a0dab] font-medium hover:underline cursor-pointer line-clamp-1">
-                    {data.seo.pageTitle}
+                    {data.seo?.pageTitle ?? ""}
                   </div>
                   <div className="mt-1 text-xs text-[#4d5156] leading-relaxed line-clamp-2">
-                    {data.seo.metaDescription}
+                    {data.seo?.metaDescription ?? ""}
                   </div>
                 </div>
               </div>
@@ -565,11 +699,11 @@ function AdminDashboard() {
                   <div className="flex justify-between items-center text-xs font-bold text-[#1d2327]">
                     <label>SEO Page Title Tag *</label>
                     <span className="text-[11px] text-muted-foreground">
-                      {data.seo.pageTitle.length} / 65 characters
+                      {(data.seo?.pageTitle || "").length} / 65 characters
                     </span>
                   </div>
                   <Input
-                    value={data.seo.pageTitle}
+                    value={data.seo?.pageTitle ?? ""}
                     onChange={(e) => cms.updateSEO({ pageTitle: e.target.value })}
                     className="rounded"
                   />
@@ -579,12 +713,12 @@ function AdminDashboard() {
                   <div className="flex justify-between items-center text-xs font-bold text-[#1d2327]">
                     <label>Meta Description *</label>
                     <span className="text-[11px] text-muted-foreground">
-                      {data.seo.metaDescription.length} / 160 characters
+                      {(data.seo?.metaDescription || "").length} / 160 characters
                     </span>
                   </div>
                   <Textarea
                     rows={3}
-                    value={data.seo.metaDescription}
+                    value={data.seo?.metaDescription ?? ""}
                     onChange={(e) => cms.updateSEO({ metaDescription: e.target.value })}
                     className="rounded"
                   />
@@ -596,7 +730,7 @@ function AdminDashboard() {
                       Target Keywords (Comma-separated)
                     </label>
                     <Input
-                      value={data.seo.keywords}
+                      value={data.seo?.keywords ?? ""}
                       onChange={(e) => cms.updateSEO({ keywords: e.target.value })}
                       className="rounded"
                     />
@@ -604,7 +738,7 @@ function AdminDashboard() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Canonical URL</label>
                     <Input
-                      value={data.seo.canonicalUrl}
+                      value={data.seo?.canonicalUrl ?? ""}
                       onChange={(e) => cms.updateSEO({ canonicalUrl: e.target.value })}
                       className="rounded"
                     />
@@ -615,7 +749,7 @@ function AdminDashboard() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">OpenGraph Social Title</label>
                     <Input
-                      value={data.seo.ogTitle}
+                      value={data.seo?.ogTitle ?? ""}
                       onChange={(e) => cms.updateSEO({ ogTitle: e.target.value })}
                       className="rounded"
                     />
@@ -623,7 +757,7 @@ function AdminDashboard() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Social Image URL</label>
                     <Input
-                      value={data.seo.ogImage}
+                      value={data.seo?.ogImage ?? ""}
                       onChange={(e) => cms.updateSEO({ ogImage: e.target.value })}
                       className="rounded"
                     />
@@ -657,16 +791,16 @@ function AdminDashboard() {
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Full Name</label>
+                    <label className="text-xs font-bold text-[#1d2327]">Full Name *</label>
                     <Input
-                      value={data.hero.name}
+                      value={data.hero?.name ?? ""}
                       onChange={(e) => cms.updateHero({ name: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Professional Title</label>
+                    <label className="text-xs font-bold text-[#1d2327]">Professional Title *</label>
                     <Input
-                      value={data.hero.title}
+                      value={data.hero?.title ?? ""}
                       onChange={(e) => cms.updateHero({ title: e.target.value })}
                     />
                   </div>
@@ -676,7 +810,7 @@ function AdminDashboard() {
                   <label className="text-xs font-bold text-[#1d2327]">Hero Subtitle / Mission</label>
                   <Textarea
                     rows={2}
-                    value={data.hero.subtitle}
+                    value={data.hero?.subtitle ?? ""}
                     onChange={(e) => cms.updateHero({ subtitle: e.target.value })}
                   />
                 </div>
@@ -685,21 +819,21 @@ function AdminDashboard() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">WhatsApp Phone (Digits)</label>
                     <Input
-                      value={data.contact.whatsappNumber}
+                      value={data.contact?.whatsappNumber ?? ""}
                       onChange={(e) => cms.updateContact({ whatsappNumber: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Direct Phone</label>
                     <Input
-                      value={data.contact.phone}
+                      value={data.contact?.phone ?? ""}
                       onChange={(e) => cms.updateContact({ phone: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Email Address</label>
                     <Input
-                      value={data.contact.email}
+                      value={data.contact?.email ?? ""}
                       onChange={(e) => cms.updateContact({ email: e.target.value })}
                     />
                   </div>
@@ -709,14 +843,14 @@ function AdminDashboard() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Oladoc Profile URL</label>
                     <Input
-                      value={data.hero.oladocUrl}
+                      value={data.hero?.oladocUrl ?? ""}
                       onChange={(e) => cms.updateHero({ oladocUrl: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-[#1d2327]">Marham Profile URL</label>
                     <Input
-                      value={data.hero.marhamUrl}
+                      value={data.hero?.marhamUrl ?? ""}
                       onChange={(e) => cms.updateHero({ marhamUrl: e.target.value })}
                     />
                   </div>
@@ -724,30 +858,58 @@ function AdminDashboard() {
 
                 {/* Bio Paragraphs Editor */}
                 <div className="pt-4 border-t border-[#c3c4c7]/40 space-y-3">
-                  <label className="text-xs font-bold text-[#1d2327]">
-                    Clinical Bio Paragraphs
-                  </label>
-                  {data.bio.map((p, idx) => (
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Clinical Bio Paragraphs ({(data.bio || []).length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...(data.bio || []), "New clinical bio paragraph..."];
+                        cms.updateBio(updated);
+                        toast.success("New paragraph added");
+                      }}
+                      className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Plus size={12} /> Add Paragraph
+                    </button>
+                  </div>
+
+                  {(data.bio || []).map((p, idx) => (
                     <div key={idx} className="flex gap-2 items-start">
                       <span className="text-xs font-bold text-muted-foreground pt-2">
                         #{idx + 1}
                       </span>
                       <Textarea
                         rows={3}
-                        value={p}
+                        value={p ?? ""}
                         onChange={(e) => {
-                          const updated = [...data.bio];
+                          const updated = [...(data.bio || [])];
                           updated[idx] = e.target.value;
                           cms.updateBio(updated);
                         }}
                       />
+                      {(data.bio || []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (data.bio || []).filter((_, i) => i !== idx);
+                            cms.updateBio(updated);
+                            toast.info("Paragraph removed");
+                          }}
+                          className="pt-2 text-slate-400 hover:text-red-500"
+                          title="Remove paragraph"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
 
                 <div className="pt-2 flex justify-end">
                   <Button
-                    onClick={() => toast.success("Doctor profile updated")}
+                    onClick={() => toast.success("Doctor profile updated successfully")}
                     className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs px-6"
                   >
                     <Save size={14} className="mr-1.5" /> Save Changes
@@ -763,7 +925,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between border-b border-[#c3c4c7]/40 pb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-[#1d2327]">
-                    Specialty Treatments ({data.services.length})
+                    Specialty Treatments ({(data.services || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
                     Add, edit, or remove physiotherapy services shown on the live website.
@@ -789,7 +951,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.services.map((srv) => (
+                    {(data.services || []).map((srv) => (
                       <tr key={srv.id} className="border-b border-slate-100 hover:bg-slate-50/80">
                         <td className="py-3 px-4 font-bold text-[#1d2327]">{srv.title}</td>
                         <td className="py-3 px-4">
@@ -837,7 +999,7 @@ function AdminDashboard() {
             <div className="space-y-6">
               <div className="border-b border-[#c3c4c7]/40 pb-4">
                 <h1 className="text-2xl font-bold text-[#1d2327]">
-                  Clinics & Operating Timings ({data.clinics.length})
+                  Clinics & Operating Timings ({(data.clinics || []).length})
                 </h1>
                 <p className="text-xs text-[#50575e]">
                   Manage Islamabad clinic locations, shift hours, and Google Maps direction URLs.
@@ -845,7 +1007,7 @@ function AdminDashboard() {
               </div>
 
               <div className="grid gap-6 md:grid-cols-3">
-                {data.clinics.map((clinic, idx) => (
+                {(data.clinics || []).map((clinic, idx) => (
                   <div
                     key={clinic.id}
                     className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4"
@@ -858,7 +1020,7 @@ function AdminDashboard() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-[#646970]">Clinic Name</label>
                       <Input
-                        value={clinic.name}
+                        value={clinic.name ?? ""}
                         onChange={(e) =>
                           cms.updateClinic(clinic.id, { name: e.target.value })
                         }
@@ -868,7 +1030,7 @@ function AdminDashboard() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-[#646970]">Address</label>
                       <Input
-                        value={clinic.address}
+                        value={clinic.address ?? ""}
                         onChange={(e) =>
                           cms.updateClinic(clinic.id, { address: e.target.value })
                         }
@@ -878,7 +1040,7 @@ function AdminDashboard() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-[#646970]">Hours (Label)</label>
                       <Input
-                        value={clinic.hours}
+                        value={clinic.hours ?? ""}
                         onChange={(e) =>
                           cms.updateClinic(clinic.id, { hours: e.target.value })
                         }
@@ -890,7 +1052,7 @@ function AdminDashboard() {
                         <label className="text-[10px] font-bold text-[#646970]">Open Hour (24h)</label>
                         <Input
                           type="number"
-                          value={clinic.openHour}
+                          value={clinic.openHour ?? 9}
                           onChange={(e) =>
                             cms.updateClinic(clinic.id, {
                               openHour: parseInt(e.target.value) || 0,
@@ -902,7 +1064,7 @@ function AdminDashboard() {
                         <label className="text-[10px] font-bold text-[#646970]">Close Hour (24h)</label>
                         <Input
                           type="number"
-                          value={clinic.closeHour}
+                          value={clinic.closeHour ?? 17}
                           onChange={(e) =>
                             cms.updateClinic(clinic.id, {
                               closeHour: parseInt(e.target.value) || 0,
@@ -915,7 +1077,7 @@ function AdminDashboard() {
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-[#646970]">Google Maps Link</label>
                       <Input
-                        value={clinic.mapsUrl}
+                        value={clinic.mapsUrl ?? ""}
                         onChange={(e) =>
                           cms.updateClinic(clinic.id, { mapsUrl: e.target.value })
                         }
@@ -951,21 +1113,21 @@ function AdminDashboard() {
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                   <ShieldCheck size={16} className="text-[#2271b1]" />
-                  <span>International Medical Licenses ({data.licenses.length})</span>
+                  <span>International Medical Licenses ({(data.licenses || []).length})</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {data.licenses.map((lic) => (
+                  {(data.licenses || []).map((lic) => (
                     <div key={lic.id} className="rounded border border-slate-200 p-3 space-y-2">
                       <div className="font-bold text-xs text-[#1d2327]">{lic.code}</div>
                       <Input
-                        value={lic.region}
+                        value={lic.region ?? ""}
                         onChange={(e) =>
                           cms.updateLicense(lic.id, { region: e.target.value })
                         }
                         placeholder="Region"
                       />
                       <Input
-                        value={lic.fullName}
+                        value={lic.fullName ?? ""}
                         onChange={(e) =>
                           cms.updateLicense(lic.id, { fullName: e.target.value })
                         }
@@ -980,27 +1142,27 @@ function AdminDashboard() {
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                   <GraduationCap size={16} className="text-[#2271b1]" />
-                  <span>Academic Qualifications ({data.qualifications.length})</span>
+                  <span>Academic Qualifications ({(data.qualifications || []).length})</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {data.qualifications.map((q) => (
+                  {(data.qualifications || []).map((q) => (
                     <div key={q.id} className="rounded border border-slate-200 p-3 space-y-2">
                       <Input
-                        value={q.title}
+                        value={q.title ?? ""}
                         onChange={(e) =>
                           cms.updateQualification(q.id, { title: e.target.value })
                         }
                         placeholder="Degree Title"
                       />
                       <Input
-                        value={q.institution}
+                        value={q.institution ?? ""}
                         onChange={(e) =>
                           cms.updateQualification(q.id, { institution: e.target.value })
                         }
                         placeholder="University / Institute"
                       />
                       <Input
-                        value={q.year}
+                        value={q.year ?? ""}
                         onChange={(e) =>
                           cms.updateQualification(q.id, { year: e.target.value })
                         }
@@ -1015,20 +1177,20 @@ function AdminDashboard() {
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                   <Award size={16} className="text-[#2271b1]" />
-                  <span>Specialized Certifications ({data.certifications.length})</span>
+                  <span>Specialized Certifications ({(data.certifications || []).length})</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {data.certifications.map((c) => (
+                  {(data.certifications || []).map((c) => (
                     <div key={c.id} className="rounded border border-slate-200 p-3 space-y-2">
                       <Input
-                        value={c.title}
+                        value={c.title ?? ""}
                         onChange={(e) =>
                           cms.updateCertification(c.id, { title: e.target.value })
                         }
                         placeholder="Certification Title"
                       />
                       <Input
-                        value={c.issuer}
+                        value={c.issuer ?? ""}
                         onChange={(e) =>
                           cms.updateCertification(c.id, { issuer: e.target.value })
                         }
@@ -1056,7 +1218,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between border-b border-[#c3c4c7]/40 pb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-[#1d2327]">
-                    Patient Testimonials ({data.testimonials.length})
+                    Patient Testimonials ({(data.testimonials || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
                     Manage patient reviews, ratings, and quotes displayed on the website.
@@ -1071,7 +1233,7 @@ function AdminDashboard() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                {data.testimonials.map((t) => (
+                {(data.testimonials || []).map((t) => (
                   <div
                     key={t.id}
                     className="border border-[#c3c4c7] bg-white p-5 shadow-xs flex flex-col justify-between"
@@ -1080,7 +1242,7 @@ function AdminDashboard() {
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm text-[#1d2327]">{t.name}</span>
                         <div className="flex text-amber-400">
-                          {Array.from({ length: t.rating }).map((_, i) => (
+                          {Array.from({ length: t.rating || 5 }).map((_, i) => (
                             <Star key={i} size={12} fill="currentColor" />
                           ))}
                         </div>
@@ -1118,7 +1280,7 @@ function AdminDashboard() {
               <div className="flex items-center justify-between border-b border-[#c3c4c7]/40 pb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-[#1d2327]">
-                    Frequently Asked Questions ({data.faqs.length})
+                    Frequently Asked Questions ({(data.faqs || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
                     Manage patient questions and detailed answers in the interactive accordion.
@@ -1133,7 +1295,7 @@ function AdminDashboard() {
               </div>
 
               <div className="space-y-3">
-                {data.faqs.map((faq, idx) => (
+                {(data.faqs || []).map((faq, idx) => (
                   <div
                     key={faq.id}
                     className="border border-[#c3c4c7] bg-white p-4 shadow-xs"
@@ -1183,7 +1345,7 @@ function AdminDashboard() {
             <div className="space-y-6">
               <div className="border-b border-[#c3c4c7]/40 pb-4">
                 <h1 className="text-2xl font-bold text-[#1d2327]">
-                  Patient Inquiries & Appointments ({data.bookings.length})
+                  Patient Inquiries & Appointments ({(data.bookings || []).length})
                 </h1>
                 <p className="text-xs text-[#50575e]">
                   Consultation requests submitted by patients via the website booking modal.
@@ -1205,7 +1367,7 @@ function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.bookings.map((b) => (
+                    {(data.bookings || []).map((b) => (
                       <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50/80">
                         <td className="py-3 px-4 text-[#646970]">{b.createdAt}</td>
                         <td className="py-3 px-4 font-bold text-[#1d2327]">{b.patientName}</td>
