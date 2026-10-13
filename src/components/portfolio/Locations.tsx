@@ -88,30 +88,39 @@ export function Locations({ onSelectClinic }: LocationsProps) {
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
-          {data.clinics.map((clinic) => {
-            const status = getClinicStatus(clinic);
-            return (
-              <article
-                key={clinic.id || clinic.name}
-                className="group flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-border/50 bg-white p-8 transition-all duration-300 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2"
-              >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-white shadow-lg">
-                      <MapPin size={24} />
+          {[...data.clinics]
+            .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
+            .map((clinic, index) => {
+              const status = getClinicStatus(clinic);
+              const shiftNames = ["Morning Shift", "Afternoon Shift", "Evening Shift"];
+              const shiftLabel = shiftNames[index] || `Shift ${index + 1}`;
+              return (
+                <article
+                  key={clinic.id || clinic.name}
+                  className="group flex flex-col justify-between overflow-hidden rounded-2xl border-2 border-border/50 bg-white p-8 transition-all duration-300 hover:border-primary/60 hover:shadow-2xl hover:shadow-primary/15 hover:-translate-y-2"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-white shadow-lg">
+                          <MapPin size={24} />
+                        </div>
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary">
+                          {shiftLabel}
+                        </span>
+                      </div>
+                      {/* Live Open Status Badge */}
+                      <div
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold shrink-0 ${status.colorClass}`}
+                      >
+                        <span className={`h-2 w-2 rounded-full ${status.dotClass}`} />
+                        {status.badgeText}
+                      </div>
                     </div>
-                    {/* Live Open Status Badge */}
-                    <div
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ${status.colorClass}`}
-                    >
-                      <span className={`h-2 w-2 rounded-full ${status.dotClass}`} />
-                      {status.badgeText}
-                    </div>
-                  </div>
 
-                  <h3 className="mt-6 font-display text-xl font-bold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
-                    {clinic.name}
-                  </h3>
+                    <h3 className="mt-6 font-display text-xl font-bold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
+                      {clinic.name}
+                    </h3>
 
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {clinic.address}

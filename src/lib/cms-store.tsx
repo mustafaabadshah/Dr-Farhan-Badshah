@@ -438,28 +438,38 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
           contact: { ...INITIAL_DATA.contact, ...(parsed?.contact || {}) },
           bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : INITIAL_DATA.bio,
           services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : INITIAL_DATA.services,
-          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics).map((c: any) => {
-            if (c.name?.includes("Muhammad Medical") || c.name?.includes("Muhammad")) {
-              return {
-                ...c,
-                name: "Shahida Khaliq Hospital",
-                address: "Plot No 14, Street No 22, G-8/4, Islamabad, 44000",
-                hours: "2:00 PM – 5:00 PM",
-                mapsUrl: "https://maps.google.com/?q=Shahida+Khaliq+Hospital+G-8/4+Islamabad",
-                openHour: 14,
-                closeHour: 17,
-              };
-            }
-            if (c.name?.includes("General Practice")) {
-              return {
-                ...c,
-                hours: "5:00 PM – 8:00 PM",
-                openHour: 17,
-                closeHour: 20,
-              };
-            }
-            return c;
-          }),
+          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics)
+            .map((c: any) => {
+              if (c.name?.includes("Muhammad Medical") || c.name?.includes("Muhammad") || c.name?.includes("Shahida")) {
+                return {
+                  ...c,
+                  name: "Shahida Khaliq Hospital",
+                  address: "Plot No 14, Street No 22, G-8/4, Islamabad, 44000",
+                  hours: "2:00 PM – 5:00 PM",
+                  mapsUrl: "https://maps.google.com/?q=Shahida+Khaliq+Hospital+G-8/4+Islamabad",
+                  openHour: 14,
+                  closeHour: 17,
+                };
+              }
+              if (c.name?.includes("General Practice") || c.name?.includes("GP")) {
+                return {
+                  ...c,
+                  hours: "5:00 PM – 8:00 PM",
+                  openHour: 17,
+                  closeHour: 20,
+                };
+              }
+              if (c.name?.includes("Ali Medical")) {
+                return {
+                  ...c,
+                  hours: "9:00 AM – 2:00 PM",
+                  openHour: 9,
+                  closeHour: 14,
+                };
+              }
+              return c;
+            })
+            .sort((a: ClinicItem, b: ClinicItem) => (a.openHour ?? 0) - (b.openHour ?? 0)),
           qualifications: (Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications).map((q: any) => {
             if (q.year && ["completed", "ongoing"].includes(q.year.trim().toLowerCase())) {
               return { ...q, year: "" };
@@ -560,14 +570,17 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
 
   const addClinic = (c: Omit<ClinicItem, "id">) => {
     const newClinic: ClinicItem = { ...c, id: `cl-${Date.now()}` };
-    saveState({ ...data, clinics: [...data.clinics, newClinic] });
+    const updated = [...data.clinics, newClinic].sort(
+      (a, b) => (a.openHour ?? 0) - (b.openHour ?? 0)
+    );
+    saveState({ ...data, clinics: updated });
   };
 
   const updateClinic = (id: string, updates: Partial<ClinicItem>) => {
-    saveState({
-      ...data,
-      clinics: data.clinics.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-    });
+    const updated = data.clinics
+      .map((c) => (c.id === id ? { ...c, ...updates } : c))
+      .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0));
+    saveState({ ...data, clinics: updated });
   };
 
   const deleteClinic = (id: string) => {

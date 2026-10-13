@@ -180,11 +180,13 @@ export function BookingModal({
                   onChange={(e) => setClinic(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  {data.clinics.map((c) => (
-                    <option key={c.id} value={c.name}>
-                      {c.name} ({c.hours})
-                    </option>
-                  ))}
+                  {[...data.clinics]
+                    .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
+                    .map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.hours})
+                      </option>
+                    ))}
                 </select>
               </div>
 

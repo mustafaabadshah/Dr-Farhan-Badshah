@@ -1515,7 +1515,9 @@ function AdminDashboard() {
               </div>
 
               <div className="grid gap-6 md:grid-cols-3">
-                {(data.clinics || []).map((clinic, idx) => (
+                {[...(data.clinics || [])]
+                  .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
+                  .map((clinic, idx) => (
                   <div
                     key={clinic.id}
                     className="border border-[#c3c4c7] bg-white p-5 shadow-xs flex flex-col justify-between"

@@ -131,7 +131,9 @@ export function SeoHead() {
           "worstRating": "1"
         }
       },
-      ...clinics.map((c, idx) => ({
+      ...[...clinics]
+        .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
+        .map((c, idx) => ({
         "@type": "MedicalClinic",
         "@id": `https://drfarhanbadshah.com/#clinic-${idx + 1}`,
         "name": `${hero.name} @ ${c.name}`,
