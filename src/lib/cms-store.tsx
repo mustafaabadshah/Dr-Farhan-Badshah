@@ -133,6 +133,19 @@ export interface BookingInquiry {
   doctorNotes?: string;
 }
 
+export interface ArticleItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: "Spine & Pain" | "Sports Rehab" | "Post-Surgery" | "Ergonomics & Posture" | "General Wellness";
+  readTime: string;
+  date: string;
+  imageUrl: string;
+  description: string;
+  content: string;
+  featured?: boolean;
+}
+
 export interface CMSData {
   seo: SEOConfig;
   hero: HeroConfig;
@@ -140,6 +153,7 @@ export interface CMSData {
   bio: string[];
   services: ServiceItem[];
   clinics: ClinicItem[];
+  articles: ArticleItem[];
   qualifications: QualificationItem[];
   certifications: CertificationItem[];
   licenses: LicenseItem[];
@@ -241,6 +255,83 @@ const DEFAULT_STATS: StatItem[] = [
   },
 ];
 
+export const DEFAULT_ARTICLES: ArticleItem[] = [
+  {
+    id: "art-1",
+    title: "5 Evidence-Based Ways to Relieve Sciatica & Lower Back Pain at Home",
+    slug: "relieve-sciatica-lower-back-pain",
+    category: "Spine & Pain",
+    readTime: "4 min read",
+    date: "October 2026",
+    imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+    description: "Expert physiotherapy guidance on distinguishing true nerve impingement from muscular tension, safe decompression techniques, and when to seek clinical assessment.",
+    content: `Lower back pain and sciatica affect up to 40% of adults at some point in their lives. Prolonged bed rest is scientifically proven to delay recovery rather than accelerate it.
+
+### 1. Maintain Gentle, Graded Movement
+Active recovery is superior to immobilization. Short walks (10–15 minutes) on even surfaces promote blood circulation to spinal discs and reduce reflexive paraspinal muscle spasms.
+
+### 2. Decompression & Prone Press-ups (McKenzie Extension)
+If your sciatica symptoms are caused by posterior disc protrusion, lying face down and gently propping onto your forearms encourages directional disc centralization, moving pain away from the leg and back toward the lumbar midline.
+
+### 3. Nerve Flossing (Neurodynamics)
+Gentle sciatic nerve gliding exercises prevent neural adhesions without aggressively stretching an inflamed nerve root. Sit on a chair, extend your knee while extending your neck, then reverse smoothly.
+
+### 4. Cold vs. Heat Application
+Use ice packs for the first 48 hours of an acute spasm to downregulate local neurogenic inflammation. Switch to moist heat thereafter to loosen tense spinal muscles.
+
+### 5. When to Consult Dr. Farhan Badshah
+If you experience progressive muscle weakness (such as foot drop), numbness in the saddle area, or pain persisting beyond 2 weeks, consult Dr. Farhan for targeted manual therapy, decompression, and personalized rehab.`,
+    featured: true,
+  },
+  {
+    id: "art-2",
+    title: "ACL Rehabilitation Timeline: What Athletes in Islamabad Must Know Before Returning to Play",
+    slug: "acl-rehab-timeline-return-to-play",
+    category: "Sports Rehab",
+    readTime: "6 min read",
+    date: "September 2026",
+    imageUrl: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+    description: "Why arbitrary calendar deadlines fail athletes, how objective limb symmetry testing prevents secondary tears, and sports-specific neuromuscular retraining.",
+    content: `One of the most dangerous myths in athletic rehabilitation is that an anterior cruciate ligament (ACL) reconstruction is ready simply because 6 months have passed on a calendar.
+
+### Criteria-Based Progression vs. Time-Based Progression
+Biological healing of a graft takes time, but neuromotor control, quad strength symmetry, and psychological readiness require targeted loading and objective criteria testing.
+
+### The 4 Crucial Recovery Milestones:
+1. **Phase 1: Full Terminal Knee Extension (Weeks 0–3)**: Restoring symmetrical extension is vital to prevent arthrofibrosis and patellofemoral irritation.
+2. **Phase 2: Quad Hypertrophy & Kinetic Chain Control (Weeks 4–12)**: Achieving at least 80% Limb Symmetry Index (LSI) in quadriceps and hamstring force output.
+3. **Phase 3: Plyometric Deceleration & Change of Direction (Months 4–7)**: Training proper landing mechanics with low knee valgus stress.
+4. **Phase 4: Return-to-Sport Battery Testing (Months 8–12)**: Passing triple hop tests, reactive agility tests, and psychological readiness scales (ACL-RSI).
+
+Dr. Farhan Badshah designs individualized return-to-play protocols for football, cricket, and fitness athletes across Islamabad to ensure long-term joint durability.`,
+    featured: true,
+  },
+  {
+    id: "art-3",
+    title: "Desk Ergonomics & Postural Neck Strain: Practical Solutions for Office Workers",
+    slug: "desk-ergonomics-neck-strain-solutions",
+    category: "Ergonomics & Posture",
+    readTime: "5 min read",
+    date: "August 2026",
+    imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80",
+    description: "Combat forward head posture ('tech neck') and upper cross syndrome with workstation adjustments and 3-minute desk mobility drills.",
+    content: `Sitting at a computer for 8 to 10 hours daily places excessive compressive stress on the cervical spine and thoracic junction. For every inch your head shifts forward past your shoulders, the effective weight on your neck muscles increases by 10 pounds.
+
+### Ergonomic Adjustments for Instant Relief:
+- **Eye-Level Display**: The top third of your computer monitor should align directly with your natural horizontal eye gaze.
+- **Elbow Angle 90–100°**: Rest your forearms on the desk or chair armrests with relaxed shoulders.
+- **Feet Flat on Floor**: Use a footrest if necessary to avoid posterior pelvic tilting.
+
+### 3-Minute Desk Micro-Breaks:
+1. **Chin Tucks**: Retract your chin horizontally to activate deep cervical flexors.
+2. **Brugger's Postural Reset**: Turn your palms outward, retract shoulder blades, and breathe diaphragmatically for 30 seconds.
+3. **Thoracic Extensions**: Place hands behind your head and gently extend over the back of your office chair.
+
+If chronic tension headaches, numbness into fingers, or burning upper back pain persist, a clinical assessment with Dr. Farhan Badshah can identify underlying cervical facet or nerve root irritation.`,
+    featured: false,
+  },
+];
+
 const DEFAULT_SERVICES_ENRICHED: ServiceItem[] = DEFAULT_SERVICES.map((s, idx) => {
   let category: ServiceItem["category"] = "General";
   if (s.title.includes("Sports") || s.title.includes("Strength") || s.title.includes("Performance")) {
@@ -322,6 +413,7 @@ const INITIAL_DATA: CMSData = {
   bio: [...DEFAULT_BIO],
   services: DEFAULT_SERVICES_ENRICHED,
   clinics: DEFAULT_CLINICS_ENRICHED,
+  articles: DEFAULT_ARTICLES,
   qualifications: DEFAULT_QUALIFICATIONS.map((q, i) => ({
     id: `qual-${i + 1}`,
     title: q.title,
@@ -393,6 +485,9 @@ interface CMSContextType {
   addClinic: (clinic: Omit<ClinicItem, "id">) => void;
   updateClinic: (id: string, clinic: Partial<ClinicItem>) => void;
   deleteClinic: (id: string) => void;
+  addArticle: (item: Omit<ArticleItem, "id">) => void;
+  updateArticle: (id: string, item: Partial<ArticleItem>) => void;
+  deleteArticle: (id: string) => void;
   addQualification: (item: Omit<QualificationItem, "id">) => void;
   updateQualification: (id: string, item: Partial<QualificationItem>) => void;
   deleteQualification: (id: string) => void;
@@ -470,6 +565,7 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
               return c;
             })
             .sort((a: ClinicItem, b: ClinicItem) => (a.openHour ?? 0) - (b.openHour ?? 0)),
+          articles: Array.isArray(parsed?.articles) && parsed.articles.length > 0 ? parsed.articles : INITIAL_DATA.articles,
           qualifications: (Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications).map((q: any) => {
             if (q.year && ["completed", "ongoing"].includes(q.year.trim().toLowerCase())) {
               return { ...q, year: "" };
@@ -587,6 +683,28 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     saveState({
       ...data,
       clinics: data.clinics.filter((c) => c.id !== id),
+    });
+  };
+
+  const addArticle = (item: Omit<ArticleItem, "id">) => {
+    const newArticle: ArticleItem = { ...item, id: `art-${Date.now()}` };
+    saveState({
+      ...data,
+      articles: [newArticle, ...(data.articles || [])],
+    });
+  };
+
+  const updateArticle = (id: string, updates: Partial<ArticleItem>) => {
+    saveState({
+      ...data,
+      articles: (data.articles || []).map((a) => (a.id === id ? { ...a, ...updates } : a)),
+    });
+  };
+
+  const deleteArticle = (id: string) => {
+    saveState({
+      ...data,
+      articles: (data.articles || []).filter((a) => a.id !== id),
     });
   };
 
@@ -797,6 +915,8 @@ export const TESTIMONIALS = ${JSON.stringify(
       null,
       2
     )} as const;
+
+export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
 `;
   };
 
@@ -814,6 +934,9 @@ export const TESTIMONIALS = ${JSON.stringify(
         addClinic,
         updateClinic,
         deleteClinic,
+        addArticle,
+        updateArticle,
+        deleteArticle,
         addQualification,
         updateQualification,
         deleteQualification,

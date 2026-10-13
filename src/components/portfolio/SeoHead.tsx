@@ -184,7 +184,22 @@ export function SeoHead() {
             "text": f.answer,
           }
         }))
-      }
+      },
+      ...(data.articles || []).map((art) => ({
+        "@type": "BlogPosting",
+        "@id": `https://drfarhanbadshah.com/#article-${art.id}`,
+        "headline": art.title,
+        "description": art.description,
+        "image": art.imageUrl,
+        "author": {
+          "@type": "Person",
+          "name": hero.name,
+        },
+        "publisher": {
+          "@type": "MedicalBusiness",
+          "name": `${hero.name} Physiotherapy`,
+        },
+      }))
     ]
   };
 

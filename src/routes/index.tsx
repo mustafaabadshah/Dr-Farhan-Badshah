@@ -11,6 +11,7 @@ import { FaqSection } from "@/components/portfolio/FaqSection";
 import { Footer } from "@/components/portfolio/Footer";
 import { BookingModal } from "@/components/portfolio/BookingModal";
 import { FloatingActionBar } from "@/components/portfolio/FloatingActionBar";
+import { ArticlesSection } from "@/components/portfolio/ArticlesSection";
 import { SeoHead } from "@/components/portfolio/SeoHead";
 import { useCMS } from "@/lib/cms-store";
 
@@ -56,6 +57,7 @@ function Index() {
         <AboutSection />
         <ServicesGrid onSelectService={handleSelectService} />
         <Locations onSelectClinic={handleSelectClinic} />
+        <ArticlesSection onOpenBooking={handleOpenBooking} />
         <Reviews />
         <FaqSection onOpenBooking={handleOpenBooking} />
       </main>

@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Activity,
   Award,
+  BookOpen,
   Calendar,
   CheckCircle2,
   Clock,
@@ -47,6 +48,7 @@ import {
   useCMS,
   type ServiceItem,
   type ClinicItem,
+  type ArticleItem,
   type FAQItem,
   type TestimonialItem,
   type QualificationItem,
@@ -78,6 +80,7 @@ type AdminTab =
   | "hero"
   | "services"
   | "clinics"
+  | "articles"
   | "credentials"
   | "testimonials"
   | "faqs"
@@ -224,6 +227,33 @@ function AdminDashboard() {
   const [waModalOpen, setWaModalOpen] = useState(false);
   const [selectedWaBooking, setSelectedWaBooking] = useState<BookingInquiry | null>(null);
   const [customWaMessage, setCustomWaMessage] = useState("");
+
+  // Articles & Blog State
+  const [articleModalOpen, setArticleModalOpen] = useState(false);
+  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
+  const [searchArticleQuery, setSearchArticleQuery] = useState("");
+  const [filterArticleCategory, setFilterArticleCategory] = useState("All");
+  const [articleForm, setArticleForm] = useState<{
+    title: string;
+    slug: string;
+    category: ArticleItem["category"];
+    readTime: string;
+    date: string;
+    imageUrl: string;
+    description: string;
+    content: string;
+    featured: boolean;
+  }>({
+    title: "",
+    slug: "",
+    category: "Spine Care",
+    readTime: "5 min read",
+    date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+    description: "",
+    content: "",
+    featured: false,
+  });
 
   // Custom Admin Credentials State
   const [adminCreds, setAdminCreds] = useState(() => {
@@ -440,6 +470,71 @@ function AdminDashboard() {
       toast.success("New license added");
     }
     setLicenseModalOpen(false);
+  };
+
+  // Article helpers
+  const openNewArticle = () => {
+    setEditingArticleId(null);
+    setArticleForm({
+      title: "",
+      slug: "",
+      category: "Spine Care",
+      readTime: "5 min read",
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+      description: "",
+      content: "",
+      featured: false,
+    });
+    setArticleModalOpen(true);
+  };
+
+  const openEditArticle = (art: ArticleItem) => {
+    setEditingArticleId(art.id);
+    setArticleForm({
+      title: art.title || "",
+      slug: art.slug || "",
+      category: art.category || "Spine Care",
+      readTime: art.readTime || "5 min read",
+      date: art.date || "",
+      imageUrl: art.imageUrl || "",
+      description: art.description || "",
+      content: art.content || "",
+      featured: !!art.featured,
+    });
+    setArticleModalOpen(true);
+  };
+
+  const handleSaveArticle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!articleForm.title.trim()) {
+      toast.error("Article title is required");
+      return;
+    }
+    if (!articleForm.description.trim()) {
+      toast.error("Article summary / excerpt is required");
+      return;
+    }
+    const cleanSlug = articleForm.slug.trim()
+      ? articleForm.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+      : articleForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+    const payload = {
+      ...articleForm,
+      slug: cleanSlug,
+      imageUrl:
+        articleForm.imageUrl.trim() ||
+        "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+    };
+
+    if (editingArticleId) {
+      cms.updateArticle(editingArticleId, payload);
+      toast.success("Article updated successfully");
+    } else {
+      cms.addArticle(payload);
+      toast.success("New article published successfully");
+    }
+    setArticleModalOpen(false);
   };
 
   // FAQ helpers
@@ -920,6 +1015,12 @@ function AdminDashboard() {
               { id: "hero", label: "Doctor & Hero", icon: User },
               { id: "services", label: "Specialties / Services", icon: Stethoscope },
               { id: "clinics", label: "Clinics & Schedule", icon: MapPin },
+              {
+                id: "articles",
+                label: "Articles & Blog",
+                icon: BookOpen,
+                count: (data.articles || []).length,
+              },
               { id: "credentials", label: "Degrees & Licenses", icon: GraduationCap },
               { id: "testimonials", label: "Patient Reviews", icon: Star },
               { id: "faqs", label: "FAQs Manager", icon: HelpCircle },
@@ -994,7 +1095,7 @@ function AdminDashboard() {
               </div>
 
               {/* Quick Stat Cards */}
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
                   <div className="text-xs font-semibold text-[#646970]">SEO Health Score</div>
                   <div className="mt-2 flex items-center gap-2">
@@ -1023,6 +1124,14 @@ function AdminDashboard() {
                 </div>
 
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
+                  <div className="text-xs font-semibold text-[#646970]">Clinical Articles</div>
+                  <div className="mt-2 text-2xl font-bold text-indigo-600">
+                    {(data.articles || []).length}
+                  </div>
+                  <div className="mt-1 text-[11px] text-[#646970]">Patient Guides & Blog</div>
+                </div>
+
+                <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs col-span-2 sm:col-span-1">
                   <div className="text-xs font-semibold text-[#646970]">Total Inquiries</div>
                   <div className="mt-2 text-2xl font-bold text-[#2271b1]">
                     {(data.bookings || []).length}
@@ -1038,7 +1147,7 @@ function AdminDashboard() {
                 <div className="border-b border-[#c3c4c7] bg-[#f6f7f7] px-4 py-2.5 font-bold text-sm text-[#1d2327]">
                   Quick Actions & Shortcuts
                 </div>
-                <div className="p-4 grid gap-3 sm:grid-cols-4">
+                <div className="p-4 grid gap-3 grid-cols-2 sm:grid-cols-5">
                   <button
                     onClick={() => setActiveTab("seo")}
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
@@ -1047,7 +1156,19 @@ function AdminDashboard() {
                       <Search size={14} /> SEO Meta Tags
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Optimize meta tags & search snippets
+                      Optimize search snippets
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={openNewArticle}
+                    className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
+                  >
+                    <div className="font-bold text-xs text-indigo-600 flex items-center gap-1.5">
+                      <BookOpen size={14} /> Write Article
+                    </div>
+                    <div className="mt-1 text-[11px] text-[#646970]">
+                      Publish medical rehab guide
                     </div>
                   </button>
 
@@ -1056,10 +1177,10 @@ function AdminDashboard() {
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
-                      <Plus size={14} /> Add New Clinic
+                      <Plus size={14} /> Add Clinic
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Add clinic center and shift hours
+                      Add clinic center & hours
                     </div>
                   </button>
 
@@ -1068,22 +1189,22 @@ function AdminDashboard() {
                     className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
-                      <GraduationCap size={14} /> Add Qualification
+                      <GraduationCap size={14} /> Qualification
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Add medical degree or diploma
+                      Add medical degree/diploma
                     </div>
                   </button>
 
                   <button
                     onClick={() => setManualBookingModalOpen(true)}
-                    className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition"
+                    className="flex flex-col items-start rounded border border-[#dcdcde] p-3 text-left hover:border-[#2271b1] hover:bg-[#f6f7f7] transition col-span-2 sm:col-span-1"
                   >
                     <div className="font-bold text-xs text-[#2271b1] flex items-center gap-1.5">
                       <Calendar size={14} /> Record Walk-in
                     </div>
                     <div className="mt-1 text-[11px] text-[#646970]">
-                      Manually add phone/walk-in patient
+                      Manually add patient
                     </div>
                   </button>
                 </div>
@@ -1579,6 +1700,194 @@ function AdminDashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB: ARTICLES & INSIGHTS (CLINICAL BLOG) */}
+          {activeTab === "articles" && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#c3c4c7]/40 pb-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#1d2327] flex items-center gap-2">
+                    <BookOpen className="text-[#2271b1]" size={24} />
+                    Clinical Articles & Blog ({(data.articles || []).length})
+                  </h1>
+                  <p className="text-xs text-[#50575e]">
+                    Write, manage, and publish evidence-based patient guides, pain relief tips, and sports rehab articles. Automatically indexed with Schema.org BlogPosting for Google and AI search visibility.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={openNewArticle}
+                    className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs rounded"
+                  >
+                    <Plus size={14} className="mr-1.5" /> Write New Article
+                  </Button>
+                </div>
+              </div>
+
+              {/* Filters & Search Toolbar */}
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-white border border-[#c3c4c7] p-3 rounded-sm shadow-xs">
+                <div className="relative flex-1 max-w-sm">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search articles by title, excerpt, condition..."
+                    value={searchArticleQuery}
+                    onChange={(e) => setSearchArticleQuery(e.target.value)}
+                    className="pl-8 text-xs h-8"
+                  />
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                  {["All", "Spine Care", "Sports Medicine", "Posture & Ergonomics", "Joint Health", "Rehabilitation"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setFilterArticleCategory(cat)}
+                      className={`whitespace-nowrap rounded px-2.5 py-1 text-xs font-semibold transition ${
+                        filterArticleCategory === cat
+                          ? "bg-[#2271b1] text-white"
+                          : "bg-slate-100 text-[#50575e] hover:bg-slate-200"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Articles Grid */}
+              {(() => {
+                const filtered = (data.articles || []).filter((a) => {
+                  const matchesCat =
+                    filterArticleCategory === "All" || a.category === filterArticleCategory;
+                  const q = searchArticleQuery.trim().toLowerCase();
+                  const matchesQuery =
+                    !q ||
+                    a.title.toLowerCase().includes(q) ||
+                    a.description.toLowerCase().includes(q) ||
+                    a.category.toLowerCase().includes(q) ||
+                    a.content.toLowerCase().includes(q);
+                  return matchesCat && matchesQuery;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="rounded border border-[#c3c4c7] bg-white p-12 text-center shadow-xs">
+                      <BookOpen size={40} className="mx-auto text-slate-300 mb-3" />
+                      <h3 className="text-sm font-bold text-slate-700">No Articles Found</h3>
+                      <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                        {searchArticleQuery || filterArticleCategory !== "All"
+                          ? "No published articles matched your search filters. Try clearing your search."
+                          : "You haven't written any articles yet. Add evidence-based rehabilitation advice and patient recovery tips to boost SEO and educate patients."}
+                      </p>
+                      <div className="mt-4 flex justify-center gap-2">
+                        {(searchArticleQuery || filterArticleCategory !== "All") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSearchArticleQuery("");
+                              setFilterArticleCategory("All");
+                            }}
+                            className="text-xs"
+                          >
+                            Reset Filters
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          onClick={openNewArticle}
+                          className="bg-[#2271b1] text-white text-xs"
+                        >
+                          <Plus size={13} className="mr-1" /> Add First Article
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((art) => (
+                      <div
+                        key={art.id}
+                        className="rounded-lg border border-[#c3c4c7] bg-white shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition"
+                      >
+                        <div>
+                          {/* Article Image Preview */}
+                          <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
+                            <img
+                              src={art.imageUrl}
+                              alt={art.title}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src =
+                                  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80";
+                              }}
+                            />
+                            <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                              <span className="rounded bg-black/70 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white">
+                                {art.category}
+                              </span>
+                              {art.featured && (
+                                <span className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-white">
+                                  ★ Featured
+                                </span>
+                              )}
+                            </div>
+                            <span className="absolute bottom-2 right-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/90">
+                              {art.readTime}
+                            </span>
+                          </div>
+
+                          {/* Content summary */}
+                          <div className="p-4 space-y-2">
+                            <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-2">
+                              <Clock size={11} /> {art.date}
+                            </div>
+                            <h3 className="font-bold text-sm text-[#1d2327] line-clamp-2 leading-snug">
+                              {art.title}
+                            </h3>
+                            <p className="text-xs text-[#50575e] line-clamp-3 leading-relaxed">
+                              {art.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Card Footer Actions */}
+                        <div className="p-4 pt-2 border-t border-slate-100 bg-[#f9fafb] flex items-center justify-between text-xs">
+                          <button
+                            onClick={() => openEditArticle(art)}
+                            className="font-bold text-[#2271b1] hover:underline flex items-center gap-1"
+                          >
+                            <FileEdit size={13} /> Edit Article
+                          </button>
+                          <div className="flex items-center gap-3">
+                            <a
+                              href="/#articles"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                            >
+                              <ExternalLink size={12} /> View Live
+                            </a>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${art.title}"?`)) {
+                                  cms.deleteArticle(art.id);
+                                  toast.success("Article deleted");
+                                }
+                              }}
+                              className="text-[#d63638] hover:underline flex items-center gap-1"
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -3484,6 +3793,217 @@ function AdminDashboard() {
                   Save Credentials
                 </Button>
               </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ARTICLE EDIT / CREATE MODAL */}
+      <Dialog open={articleModalOpen} onOpenChange={setArticleModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <BookOpen className="text-[#2271b1]" size={20} />
+              {editingArticleId ? "Edit Clinical Article" : "Write & Publish New Article"}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Publish patient guides, evidence-based pain management tips, and exercise protocols. These articles are automatically integrated with Google and AI search engines via Schema.org.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveArticle} className="mt-3 space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Article Title *</label>
+              <Input
+                required
+                value={articleForm.title}
+                onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+                placeholder="e.g. 5 Sciatica Relief Exercises You Can Safely Do at Home"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Category *</label>
+                <select
+                  value={articleForm.category}
+                  onChange={(e) =>
+                    setArticleForm({
+                      ...articleForm,
+                      category: e.target.value as ArticleItem["category"],
+                    })
+                  }
+                  className="w-full rounded border border-input p-2 text-xs bg-white"
+                >
+                  <option value="Spine Care">Spine Care</option>
+                  <option value="Sports Medicine">Sports Medicine</option>
+                  <option value="Posture & Ergonomics">Posture & Ergonomics</option>
+                  <option value="Joint Health">Joint Health</option>
+                  <option value="Rehabilitation">Rehabilitation</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Reading Time</label>
+                <Input
+                  value={articleForm.readTime}
+                  onChange={(e) => setArticleForm({ ...articleForm, readTime: e.target.value })}
+                  placeholder="e.g. 5 min read"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Publish Date</label>
+                <Input
+                  value={articleForm.date}
+                  onChange={(e) => setArticleForm({ ...articleForm, date: e.target.value })}
+                  placeholder="e.g. Oct 14, 2026"
+                />
+              </div>
+            </div>
+
+            {/* Featured toggle & URL slug */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center bg-slate-50 p-3 rounded border border-slate-200">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">URL Slug (SEO Permalink)</label>
+                <Input
+                  value={articleForm.slug}
+                  onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
+                  placeholder="sciatica-relief-exercises (optional)"
+                  className="text-xs"
+                />
+                <span className="text-[10px] text-muted-foreground">Auto-generated from title if blank.</span>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 sm:pt-4">
+                <input
+                  type="checkbox"
+                  id="featuredArticleCheck"
+                  checked={articleForm.featured}
+                  onChange={(e) => setArticleForm({ ...articleForm, featured: e.target.checked })}
+                  className="h-4 w-4 rounded border-gray-300 text-[#2271b1] focus:ring-[#2271b1]"
+                />
+                <label htmlFor="featuredArticleCheck" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                  Featured Article (Highlight on top of Blog)
+                </label>
+              </div>
+            </div>
+
+            {/* Image URL & Preset Selection */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
+              <Input
+                value={articleForm.imageUrl}
+                onChange={(e) => setArticleForm({ ...articleForm, imageUrl: e.target.value })}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="text-xs font-mono"
+              />
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[11px] font-semibold text-slate-500 mr-1">One-Click Presets:</span>
+                {[
+                  {
+                    name: "Spine & Pain",
+                    url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+                  },
+                  {
+                    name: "Sports Rehab",
+                    url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+                  },
+                  {
+                    name: "Desk & Posture",
+                    url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80",
+                  },
+                  {
+                    name: "Joint & Knee",
+                    url: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80",
+                  },
+                  {
+                    name: "Clinic Care",
+                    url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+                  },
+                ].map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setArticleForm({ ...articleForm, imageUrl: preset.url })}
+                    className={`rounded border px-2 py-0.5 text-[11px] font-medium transition ${
+                      articleForm.imageUrl === preset.url
+                        ? "border-[#2271b1] bg-blue-50 text-[#2271b1] font-bold"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    + {preset.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Live Image Preview */}
+              {articleForm.imageUrl && (
+                <div className="relative mt-2 h-28 w-full max-w-sm rounded border border-slate-200 overflow-hidden bg-slate-100">
+                  <img
+                    src={articleForm.imageUrl}
+                    alt="Cover preview"
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src =
+                        "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80";
+                    }}
+                  />
+                  <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 py-0.5 text-[9px] text-white">
+                    Preview
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Excerpt / Summary */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">
+                Short Summary / SEO Excerpt *
+              </label>
+              <Textarea
+                required
+                rows={2}
+                value={articleForm.description}
+                onChange={(e) => setArticleForm({ ...articleForm, description: e.target.value })}
+                placeholder="A compelling 2-3 sentence overview that appears on article preview cards and Google search snippets..."
+                className="text-xs leading-relaxed"
+              />
+            </div>
+
+            {/* Full Article Content */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">
+                Full Article Content * (Clinical Guides, Exercises, Advice)
+              </label>
+              <Textarea
+                required
+                rows={8}
+                value={articleForm.content}
+                onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
+                placeholder="Write full article paragraphs here. Include symptoms, anatomy, step-by-step home exercises, posture corrections, red flag warnings, and advice for scheduling a clinical consultation."
+                className="text-xs leading-relaxed font-sans"
+              />
+              <span className="text-[10px] text-muted-foreground">
+                Tip: Break sections into clear paragraphs. They will render beautifully in the patient reading modal.
+              </span>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setArticleModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="bg-[#2271b1] hover:bg-[#135e96] text-white">
+                <Save size={13} className="mr-1.5" />
+                {editingArticleId ? "Update Article" : "Publish Article"}
+              </Button>
             </div>
           </form>
         </DialogContent>
