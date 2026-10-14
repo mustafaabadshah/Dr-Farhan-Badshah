@@ -10,7 +10,8 @@ import {
   CLINICS as DEFAULT_CLINICS,
   TESTIMONIALS as DEFAULT_TESTIMONIALS,
   type ServiceIconName,
-} from "@/data/portfolioData";
+} from "../data/portfolioData";
+import BUNDLED_CMS_DATA from "../data/cms-data.json";
 
 export interface SEOConfig {
   pageTitle: string;
@@ -385,7 +386,7 @@ const DEFAULT_CLINICS_ENRICHED: ClinicItem[] = [
   },
 ];
 
-const INITIAL_DATA: CMSData = {
+export const INITIAL_DATA: CMSData = {
   seo: DEFAULT_SEO,
   hero: {
     name: DEFAULT_HERO.name,
@@ -514,93 +515,66 @@ interface CMSContextType {
   exportJSON: () => string;
   importJSON: (jsonStr: string) => boolean;
   generateExportCode: () => string;
+  publishToGitHub: (token: string, commitMessage?: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const CMSContext = createContext<CMSContextType | null>(null);
 
 export function CMSProvider({ children }: { children: React.ReactNode }) {
+  const fallbackData: CMSData = (BUNDLED_CMS_DATA as unknown as CMSData) || INITIAL_DATA;
+
   const [data, setData] = useState<CMSData>(() => {
-    if (typeof window === "undefined") return INITIAL_DATA;
+    if (typeof window === "undefined") return fallbackData;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
-          ...INITIAL_DATA,
+          ...fallbackData,
           ...parsed,
-          seo: { ...INITIAL_DATA.seo, ...(parsed?.seo || {}) },
-          hero: { ...INITIAL_DATA.hero, ...(parsed?.hero || {}) },
-          contact: { ...INITIAL_DATA.contact, ...(parsed?.contact || {}) },
-          bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : INITIAL_DATA.bio,
-          services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : INITIAL_DATA.services,
-          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : INITIAL_DATA.clinics)
-            .map((c: any) => {
-              if (c.name?.includes("Muhammad Medical") || c.name?.includes("Muhammad") || c.name?.includes("Shahida")) {
-                return {
-                  ...c,
-                  name: "Shahida Khaliq Hospital",
-                  address: "Plot No 14, Street No 22, G-8/4, Islamabad, 44000",
-                  hours: "2:00 PM – 5:00 PM",
-                  mapsUrl: "https://maps.google.com/?q=Shahida+Khaliq+Hospital+G-8/4+Islamabad",
-                  openHour: 14,
-                  closeHour: 17,
-                };
-              }
-              if (c.name?.includes("General Practice") || c.name?.includes("GP")) {
-                return {
-                  ...c,
-                  hours: "5:00 PM – 8:00 PM",
-                  openHour: 17,
-                  closeHour: 20,
-                };
-              }
-              if (c.name?.includes("Ali Medical")) {
-                return {
-                  ...c,
-                  hours: "9:00 AM – 2:00 PM",
-                  openHour: 9,
-                  closeHour: 14,
-                };
-              }
-              return c;
-            })
+          seo: { ...fallbackData.seo, ...(parsed?.seo || {}) },
+          hero: { ...fallbackData.hero, ...(parsed?.hero || {}) },
+          contact: { ...fallbackData.contact, ...(parsed?.contact || {}) },
+          bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : fallbackData.bio,
+          services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : fallbackData.services,
+          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : fallbackData.clinics)
             .sort((a: ClinicItem, b: ClinicItem) => (a.openHour ?? 0) - (b.openHour ?? 0)),
-          articles: Array.isArray(parsed?.articles) && parsed.articles.length > 0 ? parsed.articles : INITIAL_DATA.articles,
-          qualifications: (Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : INITIAL_DATA.qualifications).map((q: any) => {
-            if (q.year && ["completed", "ongoing"].includes(q.year.trim().toLowerCase())) {
-              return { ...q, year: "" };
-            }
-            return q;
-          }),
-          certifications: Array.isArray(parsed?.certifications) && parsed.certifications.length > 0 ? parsed.certifications : INITIAL_DATA.certifications,
-          licenses: Array.isArray(parsed?.licenses) && parsed.licenses.length > 0 ? parsed.licenses : INITIAL_DATA.licenses,
-          testimonials: Array.isArray(parsed?.testimonials) && parsed.testimonials.length > 0 ? parsed.testimonials : INITIAL_DATA.testimonials,
-          faqs: (Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : INITIAL_DATA.faqs).map((f: any) => {
-            if (f.answer?.includes("Muhammad Medical Complex")) {
-              return {
-                ...f,
-                answer: "Dr. Farhan consults at Ali Medical Center (F-8 Markaz) from 9:00 AM – 2:00 PM, Shahida Khaliq Hospital (Plot No 14, Street No 22, G-8/4) from 2:00 PM – 5:00 PM, and General Practice Hospital (Pakland Tower 2, New Blue Area) from 5:00 PM – 8:00 PM.",
-              };
-            }
-            return f;
-          }),
-          stats: (Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : INITIAL_DATA.stats).map((s: any) => {
-            if (s.description?.includes("G-8 Markaz")) {
-              return {
-                ...s,
-                description: "F-8 Markaz, G-8/4, and New Blue Area",
-              };
-            }
-            return s;
-          }),
-          bookings: Array.isArray(parsed?.bookings) ? parsed.bookings : INITIAL_DATA.bookings,
+          articles: Array.isArray(parsed?.articles) && parsed.articles.length > 0 ? parsed.articles : fallbackData.articles,
+          qualifications: Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : fallbackData.qualifications,
+          certifications: Array.isArray(parsed?.certifications) && parsed.certifications.length > 0 ? parsed.certifications : fallbackData.certifications,
+          licenses: Array.isArray(parsed?.licenses) && parsed.licenses.length > 0 ? parsed.licenses : fallbackData.licenses,
+          testimonials: Array.isArray(parsed?.testimonials) && parsed.testimonials.length > 0 ? parsed.testimonials : fallbackData.testimonials,
+          faqs: Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : fallbackData.faqs,
+          stats: Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : fallbackData.stats,
+          bookings: Array.isArray(parsed?.bookings) ? parsed.bookings : fallbackData.bookings,
         };
       }
     } catch (e) {
       console.warn("Could not load CMS data from localStorage", e);
     }
-    return INITIAL_DATA;
+    return fallbackData;
   });
+
+  // Automatically fetch latest remote updates from GitHub on the live website
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    if (!isLocal) {
+      fetch(`https://raw.githubusercontent.com/alisrdar/doc-folio/master/src/data/cms-data.json?t=${Date.now()}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((remote) => {
+          if (remote && remote.hero && remote.lastUpdated) {
+            setData((prev) => {
+              if (!prev.lastUpdated || new Date(remote.lastUpdated) > new Date(prev.lastUpdated)) {
+                return { ...prev, ...remote };
+              }
+              return prev;
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   const saveState = (updated: CMSData) => {
     const withTimestamp = {
@@ -613,6 +587,15 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(withTimestamp));
       } catch (e) {
         console.error("Failed to save to localStorage", e);
+      }
+
+      // If running in local development, automatically write directly to disk files
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        fetch("/api/save-cms-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(withTimestamp),
+        }).catch(() => {});
       }
     }
   };
@@ -920,6 +903,91 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
 `;
   };
 
+  const publishToGitHub = async (
+    token: string,
+    commitMessage = "chore(cms): update website content via Admin Panel"
+  ) => {
+    try {
+      const repo = "alisrdar/doc-folio";
+      const filePath = "src/data/cms-data.json";
+      const branches = ["master", "main"];
+
+      const jsonString = JSON.stringify(data, null, 2);
+      const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+      let errorMsg = "";
+
+      for (const branch of branches) {
+        try {
+          const getUrl = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
+          const getRes = await fetch(getUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github.v3+json",
+            },
+          });
+
+          let sha: string | undefined = undefined;
+          if (getRes.ok) {
+            const fileInfo = await getRes.json();
+            sha = fileInfo.sha;
+          }
+
+          const putUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+          const putRes = await fetch(putUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message: commitMessage,
+              content: contentBase64,
+              branch,
+              ...(sha ? { sha } : {}),
+            }),
+          });
+
+          if (!putRes.ok) {
+            const errJson = await putRes.json().catch(() => ({}));
+            errorMsg = errJson.message || `HTTP ${putRes.status}`;
+          }
+        } catch (e: any) {
+          errorMsg = e?.message || String(e);
+        }
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+      ) {
+        fetch("/api/save-cms-data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).catch(() => {});
+      }
+
+      if (errorMsg && errorMsg.includes("Bad credentials")) {
+        return {
+          success: false,
+          message: "Invalid GitHub token. Please verify your personal access token.",
+        };
+      }
+
+      return {
+        success: true,
+        message: "Successfully committed to GitHub! The live website is updating automatically.",
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || "Failed to commit to GitHub",
+      };
+    }
+  };
+
   return (
     <CMSContext.Provider
       value={{
@@ -963,6 +1031,7 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
         exportJSON,
         importJSON,
         generateExportCode,
+        publishToGitHub,
       }}
     >
       {children}

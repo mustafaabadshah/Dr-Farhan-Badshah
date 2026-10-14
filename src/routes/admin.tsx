@@ -265,9 +265,32 @@ function AdminDashboard() {
   });
   const [securityModalOpen, setSecurityModalOpen] = useState(false);
   const [newAdminUser, setNewAdminUser] = useState(adminCreds.user);
-  const [newAdminPass, setNewAdminPass] = useState(adminCreds.pass);
-
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [livePublishModalOpen, setLivePublishModalOpen] = useState(false);
+  const [githubToken, setGithubToken] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("docfolio_github_pat") || "";
+  });
+  const [isPublishingLive, setIsPublishingLive] = useState(false);
+  const [liveCommitMsg, setLiveCommitMsg] = useState("chore(cms): update website content via Admin Panel");
+
+  const handlePublishLive = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubToken.trim()) {
+      toast.error("Please enter a GitHub Personal Access Token to publish live.");
+      return;
+    }
+    setIsPublishingLive(true);
+    localStorage.setItem("docfolio_github_pat", githubToken.trim());
+    const res = await cms.publishToGitHub(githubToken.trim(), liveCommitMsg.trim());
+    setIsPublishingLive(false);
+    if (res.success) {
+      toast.success(res.message);
+      setLivePublishModalOpen(false);
+    } else {
+      toast.error(res.message);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -972,6 +995,15 @@ function AdminDashboard() {
           >
             <RefreshCw size={12} />
             <span className="hidden sm:inline">Reset</span>
+          </button>
+
+          <button
+            onClick={() => setLivePublishModalOpen(true)}
+            className="rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 flex items-center gap-1 shadow-xs transition"
+            title="Publish all changes directly to live website on GitHub"
+          >
+            <Send size={11} />
+            <span>Publish Live</span>
           </button>
 
           <button
@@ -2594,6 +2626,45 @@ function AdminDashboard() {
                 </p>
               </div>
 
+              {/* Direct Live Sync Box */}
+              <div className="rounded border-2 border-emerald-500/50 bg-emerald-50/40 p-5 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-sm text-emerald-950 flex items-center gap-2">
+                      <Send size={16} className="text-emerald-600" />
+                      <span>1-Click Publish to Live Website (Direct GitHub Sync)</span>
+                    </div>
+                    <p className="text-xs text-emerald-800 mt-1">
+                      Directly commit all current edits (Clinics, Articles, SEO, Services) to your repository (<code className="font-mono font-bold">alisrdar/doc-folio</code>). Your live website updates immediately without needing to open VS Code or Git!
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setLivePublishModalOpen(true)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 shadow-sm"
+                  >
+                    <Send size={13} className="mr-1.5" /> Publish Live Now
+                  </Button>
+                </div>
+
+                <div className="rounded bg-white p-3 border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-slate-600">
+                    GitHub Connection:{" "}
+                    {githubToken ? (
+                      <strong className="text-emerald-700">Connected (Token Saved in Browser)</strong>
+                    ) : (
+                      <span className="text-amber-700 font-medium">Token not configured yet</span>
+                    )}
+                  </span>
+                  <button
+                    onClick={() => setLivePublishModalOpen(true)}
+                    className="text-emerald-700 hover:underline font-bold text-xs self-start sm:self-auto"
+                  >
+                    {githubToken ? "Change Token" : "Connect GitHub Token"}
+                  </button>
+                </div>
+              </div>
+
               {/* Code Export Box */}
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
@@ -4056,6 +4127,92 @@ function AdminDashboard() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIRECT GITHUB LIVE PUBLISH MODAL */}
+      <Dialog open={livePublishModalOpen} onOpenChange={setLivePublishModalOpen}>
+        <DialogContent className="max-w-lg rounded-lg">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2 text-emerald-800">
+              <Send className="text-emerald-600" size={18} />
+              Publish Directly to Live Website
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              This commits your changes directly to the GitHub repository (<code className="font-mono font-bold text-slate-800">alisrdar/doc-folio</code>) on branches <code className="font-mono font-semibold">master</code> and <code className="font-mono font-semibold">main</code>. Your live website will automatically update for all visitors!
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handlePublishLive} className="mt-3 space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">
+                GitHub Personal Access Token (PAT) *
+              </label>
+              <Input
+                type="password"
+                required
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_xxxxxxxxxxxxxxxxxxxx or github_pat_..."
+                className="font-mono text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground leading-normal">
+                Saved securely only in your browser. Needs <code className="font-mono bg-slate-100 px-1 py-0.5 rounded font-bold">repo</code> permission.{" "}
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=DocFolio+Live+CMS+Publishing"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline font-bold inline-flex items-center gap-0.5"
+                >
+                  Generate Token on GitHub <ExternalLink size={10} />
+                </a>
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700">Commit Message (Optional)</label>
+              <Input
+                value={liveCommitMsg}
+                onChange={(e) => setLiveCommitMsg(e.target.value)}
+                placeholder="e.g. Update clinic hours & add new article"
+                className="text-xs"
+              />
+            </div>
+
+            <div className="rounded bg-emerald-50 border border-emerald-200 p-3 text-[11px] text-emerald-950 leading-relaxed">
+              <strong>✨ Instant Worldwide Sync:</strong> Once published, changes are pushed directly to your repository. All website visitors and search engines will immediately see the latest updates.
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setLivePublishModalOpen(false)}
+                disabled={isPublishingLive}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPublishingLive}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              >
+                {isPublishingLive ? (
+                  <>
+                    <RefreshCw size={13} className="mr-1.5 animate-spin" />
+                    Committing to GitHub...
+                  </>
+                ) : (
+                  <>
+                    <Send size={13} className="mr-1.5" />
+                    Publish Live Now
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
