@@ -18,6 +18,7 @@ export function Navigation({ onOpenBooking }: NavigationProps) {
     { label: "About", href: "#about" },
     { label: "Services", href: "#services" },
     { label: "Locations", href: "#locations" },
+    { label: "Articles", href: "#articles" },
     { label: "Reviews", href: "#reviews" },
     { label: "FAQs", href: "#faqs" },
     { label: "Contact", href: "#contact" },
