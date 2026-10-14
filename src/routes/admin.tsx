@@ -265,6 +265,7 @@ function AdminDashboard() {
   });
   const [securityModalOpen, setSecurityModalOpen] = useState(false);
   const [newAdminUser, setNewAdminUser] = useState(adminCreds.user);
+  const [newAdminPass, setNewAdminPass] = useState(adminCreds.pass);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [livePublishModalOpen, setLivePublishModalOpen] = useState(false);
   const [githubToken, setGithubToken] = useState(() => {
