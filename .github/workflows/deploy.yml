@@ -1,0 +1,51 @@
+name: Deploy to GitHub
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd "${{ github.workspace }}"
+          npm ci
+
+      - name: Sync CMS Data
+        run: |
+          cd "${{ github.workspace }}"
+          # Backup original data
+          cp src/data/cms-data.json src/data/cms-data.json.backup
+          # Apply any changes from the admin interface (if any)
+          # The admin interface writes to this file via Vite middleware during development
+          # For production, we rely on direct commits
+          echo "CMS data synced"
+
+      - name: Commit changes
+        run: |
+          cd "${{ github.workspace }}"
+          git config user.name "CI Bot"
+          git config user.email "ci@github.com"
+          git add -A
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Automated deployment: Update CMS data"
+          git push origin master
+
+      - name: Notify
+        if: failure()
+        run: echo "Deployment failed - check manually"
