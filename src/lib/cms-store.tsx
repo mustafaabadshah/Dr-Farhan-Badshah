@@ -473,6 +473,8 @@ export const INITIAL_DATA: CMSData = {
 };
 
 const STORAGE_KEY = "docfolio_cms_data_v1";
+export const DEFAULT_GITHUB_REPO = "mustafaabadshah/Dr-Farhan-Badshah";
+export const GITHUB_PAT_STORAGE_KEY = "docfolio_github_pat";
 
 interface CMSContextType {
   data: CMSData;
@@ -515,7 +517,7 @@ interface CMSContextType {
   exportJSON: () => string;
   importJSON: (jsonStr: string) => boolean;
   generateExportCode: () => string;
-  publishToGitHub: (token: string, commitMessage?: string) => Promise<{ success: boolean; message: string }>;
+  publishToGitHub: (token?: string, commitMessage?: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const CMSContext = createContext<CMSContextType | null>(null);
@@ -560,12 +562,20 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
     if (!isLocal) {
-      fetch(`https://raw.githubusercontent.com/alisrdar/doc-folio/master/src/data/cms-data.json?t=${Date.now()}`)
+      const repo =
+        (import.meta.env.VITE_GITHUB_REPO as string | undefined) ||
+        DEFAULT_GITHUB_REPO;
+      fetch(
+        `https://raw.githubusercontent.com/${repo}/master/src/data/cms-data.json?t=${Date.now()}`
+      )
         .then((res) => (res.ok ? res.json() : null))
         .then((remote) => {
           if (remote && remote.hero && remote.lastUpdated) {
             setData((prev) => {
-              if (!prev.lastUpdated || new Date(remote.lastUpdated) > new Date(prev.lastUpdated)) {
+              if (
+                !prev.lastUpdated ||
+                new Date(remote.lastUpdated) > new Date(prev.lastUpdated)
+              ) {
                 return { ...prev, ...remote };
               }
               return prev;
@@ -904,26 +914,49 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
   };
 
   const publishToGitHub = async (
-    token: string,
+    token?: string,
     commitMessage = "chore(cms): update website content via Admin Panel"
   ) => {
     try {
-      const repo = "alisrdar/doc-folio";
+      const activeToken =
+        token?.trim() ||
+        (typeof window !== "undefined" ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY) : "") ||
+        (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
+        "";
+
+      if (!activeToken) {
+        return {
+          success: false,
+          message: "No GitHub Personal Access Token found. Please enter a token.",
+        };
+      }
+
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("docfolio_github_pat", activeToken);
+        } catch {}
+      }
+
+      const repo =
+        (import.meta.env.VITE_GITHUB_REPO as string | undefined) ||
+        DEFAULT_GITHUB_REPO;
       const filePath = "src/data/cms-data.json";
       const branches = ["master", "main"];
 
       const jsonString = JSON.stringify(data, null, 2);
       const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
 
-      let errorMsg = "";
+      const successfulBranches: string[] = [];
+      let lastError = "";
 
       for (const branch of branches) {
         try {
           const getUrl = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
           const getRes = await fetch(getUrl, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${activeToken}`,
               Accept: "application/vnd.github.v3+json",
+              "User-Agent": "DocFolio-CMS",
             },
           });
 
@@ -937,9 +970,10 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
           const putRes = await fetch(putUrl, {
             method: "PUT",
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${activeToken}`,
               Accept: "application/vnd.github.v3+json",
               "Content-Type": "application/json",
+              "User-Agent": "DocFolio-CMS",
             },
             body: JSON.stringify({
               message: commitMessage,
@@ -949,15 +983,18 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
             }),
           });
 
-          if (!putRes.ok) {
+          if (putRes.ok) {
+            successfulBranches.push(branch);
+          } else {
             const errJson = await putRes.json().catch(() => ({}));
-            errorMsg = errJson.message || `HTTP ${putRes.status}`;
+            lastError = errJson.message || `HTTP ${putRes.status} on ${branch}`;
           }
         } catch (e: any) {
-          errorMsg = e?.message || String(e);
+          lastError = e?.message || String(e);
         }
       }
 
+      // Also save locally if in dev
       if (
         typeof window !== "undefined" &&
         (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
@@ -969,16 +1006,22 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
         }).catch(() => {});
       }
 
-      if (errorMsg && errorMsg.includes("Bad credentials")) {
+      if (successfulBranches.length === 0) {
+        if (lastError.includes("Bad credentials")) {
+          return {
+            success: false,
+            message: "Invalid GitHub token. Please verify your Personal Access Token permissions.",
+          };
+        }
         return {
           success: false,
-          message: "Invalid GitHub token. Please verify your personal access token.",
+          message: `Failed to commit to GitHub repository ${repo}: ${lastError}`,
         };
       }
 
       return {
         success: true,
-        message: "Successfully committed to GitHub! The live website is updating automatically.",
+        message: `Successfully published to GitHub (${repo} on ${successfulBranches.join(", ")})! Your live website is updating now.`,
       };
     } catch (err: any) {
       return {

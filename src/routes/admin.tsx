@@ -46,6 +46,8 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import {
   useCMS,
+  DEFAULT_GITHUB_REPO,
+  GITHUB_PAT_STORAGE_KEY,
   type ServiceItem,
   type ClinicItem,
   type ArticleItem,
@@ -271,7 +273,7 @@ function AdminDashboard() {
   const [githubToken, setGithubToken] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
-      localStorage.getItem("docfolio_github_pat") ||
+      localStorage.getItem(GITHUB_PAT_STORAGE_KEY) ||
       (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
       ""
     );
@@ -279,15 +281,24 @@ function AdminDashboard() {
   const [isPublishingLive, setIsPublishingLive] = useState(false);
   const [liveCommitMsg, setLiveCommitMsg] = useState("chore(cms): update website content via Admin Panel");
 
-  const handlePublishLive = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!githubToken.trim()) {
+  const handlePublishLive = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const tokenToUse =
+      githubToken.trim() ||
+      (typeof window !== "undefined" ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY) || "" : "") ||
+      (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
+      "";
+    if (!tokenToUse) {
       toast.error("Please enter a GitHub Personal Access Token to publish live.");
       return;
     }
     setIsPublishingLive(true);
-    localStorage.setItem("docfolio_github_pat", githubToken.trim());
-    const res = await cms.publishToGitHub(githubToken.trim(), liveCommitMsg.trim());
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(GITHUB_PAT_STORAGE_KEY, tokenToUse);
+      } catch {}
+    }
+    const res = await cms.publishToGitHub(tokenToUse, liveCommitMsg.trim());
     setIsPublishingLive(false);
     if (res.success) {
       toast.success(res.message);
@@ -2640,7 +2651,7 @@ function AdminDashboard() {
                       <span>1-Click Publish to Live Website (Direct GitHub Sync)</span>
                     </div>
                     <p className="text-xs text-emerald-800 mt-1">
-                      Directly commit all current edits (Clinics, Articles, SEO, Services) to your repository (<code className="font-mono font-bold">alisrdar/doc-folio</code>). Your live website updates immediately without needing to open VS Code or Git!
+                      Directly commit all current edits (Clinics, Articles, SEO, Services) to your repository (<code className="font-mono font-bold">mustafaabadshah/Dr-Farhan-Badshah</code>). Your live website updates immediately without needing to open VS Code or Git!
                     </p>
                   </div>
                   <Button
@@ -4099,7 +4110,7 @@ function AdminDashboard() {
                 src/data/portfolioData.ts
               </code>
               . You can copy this snippet directly into your codebase before committing or creating a pull request to{" "}
-              <code className="font-mono text-primary font-bold">alisrdar/doc-folio</code>.
+              <code className="font-mono text-primary font-bold">mustafaabadshah/Dr-Farhan-Badshah</code>.
             </DialogDescription>
           </DialogHeader>
 
@@ -4144,7 +4155,7 @@ function AdminDashboard() {
               Publish Directly to Live Website
             </DialogTitle>
             <DialogDescription className="text-xs">
-              This commits your changes directly to the GitHub repository (<code className="font-mono font-bold text-slate-800">alisrdar/doc-folio</code>) on branches <code className="font-mono font-semibold">master</code> and <code className="font-mono font-semibold">main</code>. Your live website will automatically update for all visitors!
+              This commits your changes directly to the GitHub repository (<code className="font-mono font-bold text-slate-800">mustafaabadshah/Dr-Farhan-Badshah</code>) on branches <code className="font-mono font-semibold">master</code> and <code className="font-mono font-semibold">main</code>. Your live website will automatically update for all visitors!
             </DialogDescription>
           </DialogHeader>
 
