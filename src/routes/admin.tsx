@@ -270,7 +270,11 @@ function AdminDashboard() {
   const [livePublishModalOpen, setLivePublishModalOpen] = useState(false);
   const [githubToken, setGithubToken] = useState(() => {
     if (typeof window === "undefined") return "";
-    return localStorage.getItem("docfolio_github_pat") || "";
+    return (
+      localStorage.getItem("docfolio_github_pat") ||
+      (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
+      ""
+    );
   });
   const [isPublishingLive, setIsPublishingLive] = useState(false);
   const [liveCommitMsg, setLiveCommitMsg] = useState("chore(cms): update website content via Admin Panel");
