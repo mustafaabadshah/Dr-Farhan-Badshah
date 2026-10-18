@@ -264,7 +264,7 @@ export const DEFAULT_ARTICLES: ArticleItem[] = [
     category: "Sports Rehab",
     readTime: "7 min read",
     date: "October 2026",
-    imageUrl: "/images/sports-injury-rehab-guide.jpg",
+    imageUrl: "https://raw.githubusercontent.com/mustafaabadshah/Dr-Farhan-Badshah/master/public/images/sports-injury-rehab-guide.jpg",
     description: "Comprehensive guide by Dr. Farhan Badshah on common athletic injuries, injury prevention strategies, the 4 key stages of clinical rehabilitation, and safe return-to-sport protocols in Islamabad.",
     content: `Sports and physical activity help improve strength, flexibility, endurance, and overall health. However, athletes and active individuals may experience injuries due to overuse, poor technique, inadequate warm-ups, sudden movements, or insufficient recovery time. Without appropriate care, these injuries can affect mobility, athletic performance, and daily activities.
 
@@ -489,7 +489,7 @@ export const INITIAL_DATA: CMSData = {
   lastUpdated: new Date().toISOString(),
 };
 
-const STORAGE_KEY = "docfolio_cms_data_v2";
+const STORAGE_KEY = "docfolio_cms_data_v3";
 export const DEFAULT_GITHUB_REPO = "mustafaabadshah/Dr-Farhan-Badshah";
 export const GITHUB_PAT_STORAGE_KEY = "docfolio_github_pat";
 
