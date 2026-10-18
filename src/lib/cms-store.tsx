@@ -489,7 +489,7 @@ export const INITIAL_DATA: CMSData = {
   lastUpdated: new Date().toISOString(),
 };
 
-const STORAGE_KEY = "docfolio_cms_data_v3";
+const STORAGE_KEY = "docfolio_cms_data_v4";
 export const DEFAULT_GITHUB_REPO = "mustafaabadshah/Dr-Farhan-Badshah";
 export const GITHUB_PAT_STORAGE_KEY = "docfolio_github_pat";
 
