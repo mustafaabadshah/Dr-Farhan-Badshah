@@ -248,10 +248,10 @@ function AdminDashboard() {
   }>({
     title: "",
     slug: "",
-    category: "Spine Care",
-    readTime: "5 min read",
+    category: "Sports Rehab",
+    readTime: "7 min read",
     date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-    imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "/images/sports-injury-rehab-guide.jpg",
     description: "",
     content: "",
     featured: false,

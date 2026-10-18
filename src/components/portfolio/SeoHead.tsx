@@ -190,7 +190,9 @@ export function SeoHead() {
         "@id": `https://drfarhanbadshah.com/#article-${art.id}`,
         "headline": art.title,
         "description": art.description,
-        "image": art.imageUrl,
+        "image": art.imageUrl.startsWith("http")
+          ? art.imageUrl
+          : `https://drfarhanbadshah.com${art.imageUrl.startsWith("/") ? "" : "/"}${art.imageUrl}`,
         "author": {
           "@type": "Person",
           "name": hero.name,
