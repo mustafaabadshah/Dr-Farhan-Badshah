@@ -304,14 +304,8 @@
     {
       "id": "stat-1",
       "label": "Clinical Experience",
-      "value": "5+ Years",
+      "value": "4+ Years",
       "description": "Dedicated rehabilitation and clinical physiotherapy practice"
-    },
-    {
-      "id": "stat-2",
-      "label": "Patients Treated",
-      "value": "5,000+",
-      "description": "Successful recoveries across sports, orthopedic, and neuro care"
     },
     {
       "id": "stat-3",
@@ -352,5 +346,5 @@
       "createdAt": "2026-10-13 10:15"
     }
   ],
-  "lastUpdated": "2026-10-18T14:28:37.089Z"
+  "lastUpdated": "2026-10-23T09:06:31.364Z"
 }
