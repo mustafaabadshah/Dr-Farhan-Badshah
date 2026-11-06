@@ -48,10 +48,21 @@ export interface ContactConfig {
   city: string;
   whatsappNumber: string;
   whatsappMessage: string;
+  whatsappUrl?: string;
   googleBusinessUrl: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
+}
+
+export function buildWhatsAppUrl(
+  whatsappNumber?: string,
+  whatsappMessage?: string,
+): string {
+  const cleanNumber = (whatsappNumber || "923329579368").replace(/[^0-9]/g, "");
+  const defaultMsg =
+    whatsappMessage || "Hello Dr. Farhan, I would like to book an appointment.";
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(defaultMsg)}`;
 }
 
 export interface ServiceItem {
@@ -59,7 +70,12 @@ export interface ServiceItem {
   title: string;
   description: string;
   icon: ServiceIconName;
-  category: "Spine & Pain" | "Sports Rehab" | "Neuro & Geriatric" | "Post-Surgery" | "General";
+  category:
+    | "Spine & Pain"
+    | "Sports Rehab"
+    | "Neuro & Geriatric"
+    | "Post-Surgery"
+    | "General";
 }
 
 export interface ClinicItem {
@@ -138,7 +154,12 @@ export interface ArticleItem {
   id: string;
   title: string;
   slug: string;
-  category: "Spine & Pain" | "Sports Rehab" | "Post-Surgery" | "Ergonomics & Posture" | "General Wellness";
+  category:
+    | "Spine & Pain"
+    | "Sports Rehab"
+    | "Post-Surgery"
+    | "Ergonomics & Posture"
+    | "General Wellness";
   readTime: string;
   date: string;
   imageUrl: string;
@@ -166,14 +187,16 @@ export interface CMSData {
 }
 
 const DEFAULT_SEO: SEOConfig = {
-  pageTitle: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Rehab Specialist",
+  pageTitle:
+    "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Rehab Specialist",
   metaDescription:
     "Dr. Farhan Badshah (DPT, MS Sports Rehab) is an internationally licensed Consultant Physiotherapist in Islamabad (CORU Ireland, SCFHS KSA, AHPC Pakistan). Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
   keywords:
     "physiotherapist Islamabad, best physiotherapist in Islamabad, Dr Farhan Badshah, sports injury rehabilitation Islamabad, Shahida Khaliq Hospital physiotherapist, Ali Medical Center physiotherapist, General Practice Hospital physiotherapist, back pain specialist Islamabad, sciatica treatment Islamabad, stroke rehabilitation Islamabad, orthopedic physiotherapy Islamabad, physical therapist Pakistan, DPT Islamabad, pain management Islamabad",
   canonicalUrl: "https://drfarhanbadshah.com/",
   author: "Dr. Farhan Badshah",
-  ogTitle: "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Specialist",
+  ogTitle:
+    "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Specialist",
   ogDescription:
     "Restoring movement, relieving pain, and return-to-sport rehabilitation across Islamabad. Consult Dr. Farhan at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), or GP Hospital (Blue Area).",
   ogImage: "/doc-farhan.png",
@@ -240,7 +263,8 @@ const DEFAULT_STATS: StatItem[] = [
     id: "stat-2",
     label: "Patients Treated",
     value: "5,000+",
-    description: "Successful recoveries across sports, orthopedic, and neuro care",
+    description:
+      "Successful recoveries across sports, orthopedic, and neuro care",
   },
   {
     id: "stat-3",
@@ -259,13 +283,16 @@ const DEFAULT_STATS: StatItem[] = [
 export const DEFAULT_ARTICLES: ArticleItem[] = [
   {
     id: "art-1",
-    title: "Sports Injury Prevention and Rehabilitation: A Complete Guide to Safe Recovery",
+    title:
+      "Sports Injury Prevention and Rehabilitation: A Complete Guide to Safe Recovery",
     slug: "sports-injury-prevention-rehabilitation-islamabad",
     category: "Sports Rehab",
     readTime: "7 min read",
     date: "October 2026",
-    imageUrl: "https://raw.githubusercontent.com/mustafaabadshah/Dr-Farhan-Badshah/master/public/images/sports-injury-rehab-guide.jpg",
-    description: "Comprehensive guide by Dr. Farhan Badshah on common athletic injuries, injury prevention strategies, the 4 key stages of clinical rehabilitation, and safe return-to-sport protocols in Islamabad.",
+    imageUrl:
+      "https://raw.githubusercontent.com/mustafaabadshah/Dr-Farhan-Badshah/master/public/images/sports-injury-rehab-guide.jpg",
+    description:
+      "Comprehensive guide by Dr. Farhan Badshah on common athletic injuries, injury prevention strategies, the 4 key stages of clinical rehabilitation, and safe return-to-sport protocols in Islamabad.",
     content: `Sports and physical activity help improve strength, flexibility, endurance, and overall health. However, athletes and active individuals may experience injuries due to overuse, poor technique, inadequate warm-ups, sudden movements, or insufficient recovery time. Without appropriate care, these injuries can affect mobility, athletic performance, and daily activities.
 
 Understanding sports injury prevention and rehabilitation can help reduce injury risks, support recovery, and improve the chances of returning to physical activity safely. Sports physiotherapy plays an important role in assessing injuries, restoring movement, and developing a structured recovery plan based on individual needs.
@@ -350,25 +377,40 @@ Ali Medical Center, F-8 Markaz, Islamabad`,
   },
 ];
 
-const DEFAULT_SERVICES_ENRICHED: ServiceItem[] = DEFAULT_SERVICES.map((s, idx) => {
-  let category: ServiceItem["category"] = "General";
-  if (s.title.includes("Sports") || s.title.includes("Strength") || s.title.includes("Performance")) {
-    category = "Sports Rehab";
-  } else if (s.title.includes("Pain") || s.title.includes("Musculoskeletal")) {
-    category = "Spine & Pain";
-  } else if (s.title.includes("Neurological") || s.title.includes("Geriatric")) {
-    category = "Neuro & Geriatric";
-  } else if (s.title.includes("Post-Surgical") || s.title.includes("Orthopedic")) {
-    category = "Post-Surgery";
-  }
-  return {
-    id: `srv-${idx + 1}`,
-    title: s.title,
-    description: s.description,
-    icon: s.icon,
-    category,
-  };
-});
+const DEFAULT_SERVICES_ENRICHED: ServiceItem[] = DEFAULT_SERVICES.map(
+  (s, idx) => {
+    let category: ServiceItem["category"] = "General";
+    if (
+      s.title.includes("Sports") ||
+      s.title.includes("Strength") ||
+      s.title.includes("Performance")
+    ) {
+      category = "Sports Rehab";
+    } else if (
+      s.title.includes("Pain") ||
+      s.title.includes("Musculoskeletal")
+    ) {
+      category = "Spine & Pain";
+    } else if (
+      s.title.includes("Neurological") ||
+      s.title.includes("Geriatric")
+    ) {
+      category = "Neuro & Geriatric";
+    } else if (
+      s.title.includes("Post-Surgical") ||
+      s.title.includes("Orthopedic")
+    ) {
+      category = "Post-Surgery";
+    }
+    return {
+      id: `srv-${idx + 1}`,
+      title: s.title,
+      description: s.description,
+      icon: s.icon,
+      category,
+    };
+  },
+);
 
 const DEFAULT_CLINICS_ENRICHED: ClinicItem[] = [
   {
@@ -495,6 +537,7 @@ export const GITHUB_PAT_STORAGE_KEY = "docfolio_github_pat";
 
 interface CMSContextType {
   data: CMSData;
+  getWhatsAppUrl: (customMessage?: string) => string;
   updateSEO: (seo: Partial<SEOConfig>) => void;
   updateHero: (hero: Partial<HeroConfig>) => void;
   updateContact: (contact: Partial<ContactConfig>) => void;
@@ -526,7 +569,9 @@ interface CMSContextType {
   addStat: (item: Omit<StatItem, "id">) => void;
   updateStat: (id: string, item: Partial<StatItem>) => void;
   deleteStat: (id: string) => void;
-  addBooking: (booking: Omit<BookingInquiry, "id" | "createdAt" | "status">) => BookingInquiry;
+  addBooking: (
+    booking: Omit<BookingInquiry, "id" | "createdAt" | "status">,
+  ) => BookingInquiry;
   updateBookingStatus: (id: string, status: BookingInquiry["status"]) => void;
   updateBooking: (id: string, updates: Partial<BookingInquiry>) => void;
   deleteBooking: (id: string) => void;
@@ -534,13 +579,17 @@ interface CMSContextType {
   exportJSON: () => string;
   importJSON: (jsonStr: string) => boolean;
   generateExportCode: () => string;
-  publishToGitHub: (token?: string, commitMessage?: string) => Promise<{ success: boolean; message: string }>;
+  publishToGitHub: (
+    token?: string,
+    commitMessage?: string,
+  ) => Promise<{ success: boolean; message: string }>;
 }
 
 const CMSContext = createContext<CMSContextType | null>(null);
 
 export function CMSProvider({ children }: { children: React.ReactNode }) {
-  const fallbackData: CMSData = (BUNDLED_CMS_DATA as unknown as CMSData) || INITIAL_DATA;
+  const fallbackData: CMSData =
+    (BUNDLED_CMS_DATA as unknown as CMSData) || INITIAL_DATA;
 
   const [data, setData] = useState<CMSData>(() => {
     if (typeof window === "undefined") return fallbackData;
@@ -554,18 +603,55 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
           seo: { ...fallbackData.seo, ...(parsed?.seo || {}) },
           hero: { ...fallbackData.hero, ...(parsed?.hero || {}) },
           contact: { ...fallbackData.contact, ...(parsed?.contact || {}) },
-          bio: Array.isArray(parsed?.bio) && parsed.bio.length > 0 ? parsed.bio : fallbackData.bio,
-          services: Array.isArray(parsed?.services) && parsed.services.length > 0 ? parsed.services : fallbackData.services,
-          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0 ? parsed.clinics : fallbackData.clinics)
-            .sort((a: ClinicItem, b: ClinicItem) => (a.openHour ?? 0) - (b.openHour ?? 0)),
-          articles: Array.isArray(parsed?.articles) && parsed.articles.length > 0 ? parsed.articles : fallbackData.articles,
-          qualifications: Array.isArray(parsed?.qualifications) && parsed.qualifications.length > 0 ? parsed.qualifications : fallbackData.qualifications,
-          certifications: Array.isArray(parsed?.certifications) && parsed.certifications.length > 0 ? parsed.certifications : fallbackData.certifications,
-          licenses: Array.isArray(parsed?.licenses) && parsed.licenses.length > 0 ? parsed.licenses : fallbackData.licenses,
-          testimonials: Array.isArray(parsed?.testimonials) && parsed.testimonials.length > 0 ? parsed.testimonials : fallbackData.testimonials,
-          faqs: Array.isArray(parsed?.faqs) && parsed.faqs.length > 0 ? parsed.faqs : fallbackData.faqs,
-          stats: Array.isArray(parsed?.stats) && parsed.stats.length > 0 ? parsed.stats : fallbackData.stats,
-          bookings: Array.isArray(parsed?.bookings) ? parsed.bookings : fallbackData.bookings,
+          bio:
+            Array.isArray(parsed?.bio) && parsed.bio.length > 0
+              ? parsed.bio
+              : fallbackData.bio,
+          services:
+            Array.isArray(parsed?.services) && parsed.services.length > 0
+              ? parsed.services
+              : fallbackData.services,
+          clinics: (Array.isArray(parsed?.clinics) && parsed.clinics.length > 0
+            ? parsed.clinics
+            : fallbackData.clinics
+          ).sort(
+            (a: ClinicItem, b: ClinicItem) =>
+              (a.openHour ?? 0) - (b.openHour ?? 0),
+          ),
+          articles:
+            Array.isArray(parsed?.articles) && parsed.articles.length > 0
+              ? parsed.articles
+              : fallbackData.articles,
+          qualifications:
+            Array.isArray(parsed?.qualifications) &&
+            parsed.qualifications.length > 0
+              ? parsed.qualifications
+              : fallbackData.qualifications,
+          certifications:
+            Array.isArray(parsed?.certifications) &&
+            parsed.certifications.length > 0
+              ? parsed.certifications
+              : fallbackData.certifications,
+          licenses:
+            Array.isArray(parsed?.licenses) && parsed.licenses.length > 0
+              ? parsed.licenses
+              : fallbackData.licenses,
+          testimonials:
+            Array.isArray(parsed?.testimonials) &&
+            parsed.testimonials.length > 0
+              ? parsed.testimonials
+              : fallbackData.testimonials,
+          faqs:
+            Array.isArray(parsed?.faqs) && parsed.faqs.length > 0
+              ? parsed.faqs
+              : fallbackData.faqs,
+          stats:
+            Array.isArray(parsed?.stats) && parsed.stats.length > 0
+              ? parsed.stats
+              : fallbackData.stats,
+          bookings: Array.isArray(parsed?.bookings)
+            ? parsed.bookings
+            : fallbackData.bookings,
         };
       }
     } catch (e) {
@@ -577,13 +663,15 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   // Automatically fetch latest remote updates from GitHub on the live website
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const isLocal = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const isLocal = ["localhost", "127.0.0.1"].includes(
+      window.location.hostname,
+    );
     if (!isLocal) {
       const repo =
         (import.meta.env.VITE_GITHUB_REPO as string | undefined) ||
         DEFAULT_GITHUB_REPO;
       fetch(
-        `https://raw.githubusercontent.com/${repo}/master/src/data/cms-data.json?t=${Date.now()}`
+        `https://raw.githubusercontent.com/${repo}/master/src/data/cms-data.json?t=${Date.now()}`,
       )
         .then((res) => (res.ok ? res.json() : null))
         .then((remote) => {
@@ -617,7 +705,10 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
       }
 
       // If running in local development, automatically write directly to disk files
-      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+      if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      ) {
         fetch("/api/save-cms-data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -663,7 +754,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const updateService = (id: string, srvUpdates: Partial<ServiceItem>) => {
     saveState({
       ...data,
-      services: data.services.map((s) => (s.id === id ? { ...s, ...srvUpdates } : s)),
+      services: data.services.map((s) =>
+        s.id === id ? { ...s, ...srvUpdates } : s,
+      ),
     });
   };
 
@@ -677,7 +770,7 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const addClinic = (c: Omit<ClinicItem, "id">) => {
     const newClinic: ClinicItem = { ...c, id: `cl-${Date.now()}` };
     const updated = [...data.clinics, newClinic].sort(
-      (a, b) => (a.openHour ?? 0) - (b.openHour ?? 0)
+      (a, b) => (a.openHour ?? 0) - (b.openHour ?? 0),
     );
     saveState({ ...data, clinics: updated });
   };
@@ -707,7 +800,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const updateArticle = (id: string, updates: Partial<ArticleItem>) => {
     saveState({
       ...data,
-      articles: (data.articles || []).map((a) => (a.id === id ? { ...a, ...updates } : a)),
+      articles: (data.articles || []).map((a) =>
+        a.id === id ? { ...a, ...updates } : a,
+      ),
     });
   };
 
@@ -723,10 +818,15 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     saveState({ ...data, qualifications: [...data.qualifications, newItem] });
   };
 
-  const updateQualification = (id: string, updates: Partial<QualificationItem>) => {
+  const updateQualification = (
+    id: string,
+    updates: Partial<QualificationItem>,
+  ) => {
     saveState({
       ...data,
-      qualifications: data.qualifications.map((q) => (q.id === id ? { ...q, ...updates } : q)),
+      qualifications: data.qualifications.map((q) =>
+        q.id === id ? { ...q, ...updates } : q,
+      ),
     });
   };
 
@@ -742,10 +842,15 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     saveState({ ...data, certifications: [...data.certifications, newItem] });
   };
 
-  const updateCertification = (id: string, updates: Partial<CertificationItem>) => {
+  const updateCertification = (
+    id: string,
+    updates: Partial<CertificationItem>,
+  ) => {
     saveState({
       ...data,
-      certifications: data.certifications.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+      certifications: data.certifications.map((c) =>
+        c.id === id ? { ...c, ...updates } : c,
+      ),
     });
   };
 
@@ -764,7 +869,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const updateLicense = (id: string, updates: Partial<LicenseItem>) => {
     saveState({
       ...data,
-      licenses: data.licenses.map((l) => (l.id === id ? { ...l, ...updates } : l)),
+      licenses: data.licenses.map((l) =>
+        l.id === id ? { ...l, ...updates } : l,
+      ),
     });
   };
 
@@ -783,7 +890,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const updateTestimonial = (id: string, updates: Partial<TestimonialItem>) => {
     saveState({
       ...data,
-      testimonials: data.testimonials.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+      testimonials: data.testimonials.map((t) =>
+        t.id === id ? { ...t, ...updates } : t,
+      ),
     });
   };
 
@@ -832,7 +941,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const addBooking = (bookingData: Omit<BookingInquiry, "id" | "createdAt" | "status">) => {
+  const addBooking = (
+    bookingData: Omit<BookingInquiry, "id" | "createdAt" | "status">,
+  ) => {
     const newBooking: BookingInquiry = {
       ...bookingData,
       id: `bk-${Date.now()}`,
@@ -846,7 +957,10 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
     return newBooking;
   };
 
-  const updateBookingStatus = (id: string, status: BookingInquiry["status"]) => {
+  const updateBookingStatus = (
+    id: string,
+    status: BookingInquiry["status"],
+  ) => {
     saveState({
       ...data,
       bookings: data.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
@@ -856,7 +970,9 @@ export function CMSProvider({ children }: { children: React.ReactNode }) {
   const updateBooking = (id: string, updates: Partial<BookingInquiry>) => {
     saveState({
       ...data,
-      bookings: data.bookings.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+      bookings: data.bookings.map((b) =>
+        b.id === id ? { ...b, ...updates } : b,
+      ),
     });
   };
 
@@ -897,9 +1013,13 @@ export const CONTACT = ${JSON.stringify(data.contact, null, 2)} as const;
 export const BIO = ${JSON.stringify(data.bio, null, 2)};
 
 export const SERVICES = ${JSON.stringify(
-      data.services.map((s) => ({ title: s.title, description: s.description, icon: s.icon })),
+      data.services.map((s) => ({
+        title: s.title,
+        description: s.description,
+        icon: s.icon,
+      })),
       null,
-      2
+      2,
     )};
 
 export const CLINICS = ${JSON.stringify(
@@ -910,7 +1030,7 @@ export const CLINICS = ${JSON.stringify(
         mapsUrl: c.mapsUrl,
       })),
       null,
-      2
+      2,
     )} as const;
 
 export const TESTIMONIALS = ${JSON.stringify(
@@ -923,7 +1043,7 @@ export const TESTIMONIALS = ${JSON.stringify(
         quote: t.quote,
       })),
       null,
-      2
+      2,
     )} as const;
 
 export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
@@ -932,19 +1052,22 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
 
   const publishToGitHub = async (
     token?: string,
-    commitMessage = "chore(cms): update website content via Admin Panel"
+    commitMessage = "chore(cms): update website content via Admin Panel",
   ) => {
     try {
       const activeToken =
         token?.trim() ||
-        (typeof window !== "undefined" ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY) : "") ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY)
+          : "") ||
         (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
         "";
 
       if (!activeToken) {
         return {
           success: false,
-          message: "No GitHub Personal Access Token found. Please enter a token.",
+          message:
+            "No GitHub Personal Access Token found. Please enter a token.",
         };
       }
 
@@ -1014,7 +1137,8 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
       // Also save locally if in dev
       if (
         typeof window !== "undefined" &&
-        (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1")
       ) {
         fetch("/api/save-cms-data", {
           method: "POST",
@@ -1027,7 +1151,8 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
         if (lastError.includes("Bad credentials")) {
           return {
             success: false,
-            message: "Invalid GitHub token. Please verify your Personal Access Token permissions.",
+            message:
+              "Invalid GitHub token. Please verify your Personal Access Token permissions.",
           };
         }
         return {
@@ -1048,10 +1173,26 @@ export const ARTICLES = ${JSON.stringify(data.articles || [], null, 2)};
     }
   };
 
+  const getWhatsAppUrl = (customMessage?: string) => {
+    return buildWhatsAppUrl(
+      data.contact?.whatsappNumber,
+      customMessage ?? data.contact?.whatsappMessage,
+    );
+  };
+
+  const computedData: CMSData = {
+    ...data,
+    contact: {
+      ...data.contact,
+      whatsappUrl: getWhatsAppUrl(),
+    },
+  };
+
   return (
     <CMSContext.Provider
       value={{
-        data,
+        data: computedData,
+        getWhatsAppUrl,
         updateSEO,
         updateHero,
         updateContact,

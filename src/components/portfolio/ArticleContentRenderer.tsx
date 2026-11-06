@@ -1,11 +1,19 @@
 import React from "react";
-import { CheckCircle2, HelpCircle, Activity, ShieldCheck, MapPin } from "lucide-react";
+import {
+  CheckCircle2,
+  HelpCircle,
+  Activity,
+  ShieldCheck,
+  MapPin,
+} from "lucide-react";
 
 interface ArticleContentRendererProps {
   content: string;
 }
 
-export function ArticleContentRenderer({ content }: ArticleContentRendererProps) {
+export function ArticleContentRenderer({
+  content,
+}: ArticleContentRendererProps) {
   if (!content) return null;
 
   // Helper to parse inline markdown: renders bold as bold without asterisks, strips stray hashes
@@ -29,7 +37,11 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
           </strong>
         );
       }
-      if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) {
+      if (
+        part.startsWith("*") &&
+        part.endsWith("*") &&
+        !part.startsWith("**")
+      ) {
         return (
           <em key={idx} className="italic text-slate-800">
             {part.slice(1, -1)}
@@ -43,9 +55,11 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
   // Structured Line-by-Line AST Parser
   const lines = content.split(/\r?\n/);
   type ElementNode =
+    | { type: "h1"; text: string }
     | { type: "h2"; text: string }
     | { type: "h3"; text: string }
     | { type: "h4"; text: string }
+    | { type: "quote"; text: string }
     | { type: "numbered"; number: string; text: string }
     | { type: "bullet"; text: string }
     | { type: "faq"; question: string; answer?: string }
@@ -60,7 +74,10 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
     if (!trimmed) continue;
 
     // Doctor sign-off block
-    if (trimmed.includes("Dr. Farhan Badshah") && trimmed.includes("Ali Medical Center")) {
+    if (
+      trimmed.includes("Dr. Farhan Badshah") &&
+      trimmed.includes("Ali Medical Center")
+    ) {
       nodes.push({ type: "doctor" });
       continue;
     }
@@ -89,7 +106,14 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
     // Heading 1 (#)
     if (/^#\s+/.test(trimmed)) {
       const heading = trimmed.replace(/^#\s+/, "");
-      nodes.push({ type: "h2", text: heading });
+      nodes.push({ type: "h1", text: heading });
+      continue;
+    }
+
+    // Quote / Callout (> )
+    if (/^>\s+/.test(trimmed)) {
+      const quoteText = trimmed.replace(/^>\s+/, "");
+      nodes.push({ type: "quote", text: quoteText });
       continue;
     }
 
@@ -105,7 +129,7 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
     }
 
     // Bullet item (e.g. • or - or *)
-    const bulletMatch = trimmed.match(/^([•\-\*])\s+(.*)$/);
+    const bulletMatch = trimmed.match(/^([•\-*])\s+(.*)$/);
     if (bulletMatch) {
       nodes.push({
         type: "bullet",
@@ -116,7 +140,10 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
 
     // FAQ Question block (**Question?**)
     if (trimmed.startsWith("**") && trimmed.includes("?**")) {
-      const qText = trimmed.replace(/^\*\*/, "").replace(/\*\*.*$/, "").trim();
+      const qText = trimmed
+        .replace(/^\*\*/, "")
+        .replace(/\*\*.*$/, "")
+        .trim();
       // Look ahead for subsequent answer lines
       let answerText = "";
       while (i + 1 < lines.length) {
@@ -155,6 +182,18 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
     <div className="space-y-4 text-[15px] leading-relaxed text-slate-700">
       {nodes.map((node, idx) => {
         switch (node.type) {
+          case "h1":
+            return (
+              <div key={idx} className="pt-8 pb-3 border-b-2 border-primary">
+                <h1
+                  style={{ fontWeight: 800 }}
+                  className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-950 tracking-tight"
+                >
+                  {renderInline(node.text)}
+                </h1>
+              </div>
+            );
+
           case "h2":
             return (
               <div key={idx} className="pt-8 pb-3 border-b-2 border-primary/30">
@@ -196,6 +235,16 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
               </div>
             );
 
+          case "quote":
+            return (
+              <blockquote
+                key={idx}
+                className="my-4 rounded-xl border-l-4 border-primary bg-primary/5 p-4 text-slate-800 text-sm sm:text-base leading-relaxed italic"
+              >
+                {renderInline(node.text)}
+              </blockquote>
+            );
+
           case "numbered":
             return (
               <div
@@ -214,7 +263,10 @@ export function ArticleContentRenderer({ content }: ArticleContentRendererProps)
           case "bullet":
             return (
               <div key={idx} className="flex items-start gap-2.5 my-1.5 pl-1">
-                <CheckCircle2 size={16} className="text-primary mt-1 shrink-0" />
+                <CheckCircle2
+                  size={16}
+                  className="text-primary mt-1 shrink-0"
+                />
                 <div className="text-sm leading-relaxed text-slate-800 flex-1">
                   {renderInline(node.text)}
                 </div>

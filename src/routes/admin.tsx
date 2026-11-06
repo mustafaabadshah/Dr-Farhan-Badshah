@@ -71,6 +71,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { ServiceIconName } from "@/data/portfolioData";
+import { ArticleContentRenderer } from "@/components/portfolio/ArticleContentRenderer";
 
 export const Route = createFileRoute("/admin")({
   component: AdminDashboard,
@@ -109,7 +110,8 @@ function AdminDashboard() {
 
   // Inquiries filter & search
   const [searchInquiriesQuery, setSearchInquiriesQuery] = useState("");
-  const [statusInquiriesFilter, setStatusInquiriesFilter] = useState<string>("All");
+  const [statusInquiriesFilter, setStatusInquiriesFilter] =
+    useState<string>("All");
 
   // Service Modal
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -142,7 +144,9 @@ function AdminDashboard() {
 
   // Qualification Modal
   const [qualificationModalOpen, setQualificationModalOpen] = useState(false);
-  const [editingQualificationId, setEditingQualificationId] = useState<string | null>(null);
+  const [editingQualificationId, setEditingQualificationId] = useState<
+    string | null
+  >(null);
   const [qualificationForm, setQualificationForm] = useState({
     title: "",
     institution: "",
@@ -151,7 +155,9 @@ function AdminDashboard() {
 
   // Certification Modal
   const [certificationModalOpen, setCertificationModalOpen] = useState(false);
-  const [editingCertificationId, setEditingCertificationId] = useState<string | null>(null);
+  const [editingCertificationId, setEditingCertificationId] = useState<
+    string | null
+  >(null);
   const [certificationForm, setCertificationForm] = useState({
     title: "",
     issuer: "",
@@ -186,7 +192,9 @@ function AdminDashboard() {
 
   // Testimonial Modal
   const [testimonialModalOpen, setTestimonialModalOpen] = useState(false);
-  const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
+  const [editingTestimonialId, setEditingTestimonialId] = useState<
+    string | null
+  >(null);
   const [testimonialForm, setTestimonialForm] = useState({
     name: "",
     quote: "",
@@ -219,7 +227,8 @@ function AdminDashboard() {
     preferredDate: "",
     preferredTimeSlot: "",
     status: "New" as BookingInquiry["status"],
-    appointmentType: "Clinic Visit" as "Clinic Visit" | "Home Rehab" | "Online Consultation",
+    appointmentType: "Clinic Visit" as
+      "Clinic Visit" | "Home Rehab" | "Online Consultation",
     feeStatus: "Pending" as "Pending" | "Paid" | "Waived",
     notes: "",
     doctorNotes: "",
@@ -227,7 +236,8 @@ function AdminDashboard() {
 
   // WhatsApp Assistant Modal
   const [waModalOpen, setWaModalOpen] = useState(false);
-  const [selectedWaBooking, setSelectedWaBooking] = useState<BookingInquiry | null>(null);
+  const [selectedWaBooking, setSelectedWaBooking] =
+    useState<BookingInquiry | null>(null);
   const [customWaMessage, setCustomWaMessage] = useState("");
 
   // Articles & Blog State
@@ -250,12 +260,120 @@ function AdminDashboard() {
     slug: "",
     category: "Sports Rehab",
     readTime: "7 min read",
-    date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+    date: new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
     imageUrl: "/images/sports-injury-rehab-guide.jpg",
     description: "",
     content: "",
     featured: false,
   });
+
+  const [articleContentTab, setArticleContentTab] = useState<
+    "write" | "preview"
+  >("write");
+  const contentTextareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const handleInsertFormat = (
+    formatType:
+      | "h1"
+      | "h2"
+      | "h3"
+      | "h4"
+      | "p"
+      | "bold"
+      | "italic"
+      | "bullet"
+      | "numbered"
+      | "quote"
+      | "faq"
+      | "doctor",
+  ) => {
+    const textarea = contentTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const val = textarea.value;
+    const selected = val.substring(start, end);
+
+    let replacement = "";
+
+    switch (formatType) {
+      case "h1":
+        replacement = selected ? `# ${selected}` : `# Article Heading 1\n`;
+        break;
+      case "h2":
+        replacement = selected
+          ? `## ${selected}`
+          : `## Major Section Heading\n`;
+        break;
+      case "h3":
+        replacement = selected ? `### ${selected}` : `### Subheading Title\n`;
+        break;
+      case "h4":
+        replacement = selected
+          ? `#### ${selected}`
+          : `#### Clinical Sub-section\n`;
+        break;
+      case "p":
+        replacement = selected
+          ? `${selected}\n\n`
+          : `Enter your clinical paragraph text here describing the condition, treatment techniques, or patient advice.\n\n`;
+        break;
+      case "bold":
+        replacement = selected ? `**${selected}**` : `**bold text**`;
+        break;
+      case "italic":
+        replacement = selected ? `*${selected}*` : `*italic text*`;
+        break;
+      case "bullet":
+        if (selected) {
+          replacement = selected
+            .split("\n")
+            .map((line) => (line.startsWith("• ") ? line : `• ${line}`))
+            .join("\n");
+        } else {
+          replacement = `• First key point\n• Second key point\n• Third key point\n`;
+        }
+        break;
+      case "numbered":
+        if (selected) {
+          replacement = selected
+            .split("\n")
+            .map((line, idx) => `${idx + 1}. ${line.replace(/^\d+\.\s*/, "")}`)
+            .join("\n");
+        } else {
+          replacement = `1. **Initial Assessment**: First phase of rehabilitation\n2. **Strength Recovery**: Progressive resistance training\n3. **Return to Sport**: Functional drills\n`;
+        }
+        break;
+      case "quote":
+        replacement = selected
+          ? `> ${selected}\n`
+          : `> **Clinical Tip:** Always consult a licensed physiotherapist before resuming intense athletic workouts after an injury.\n`;
+        break;
+      case "faq":
+        replacement = `\n### Frequently Asked Questions\n\n**What causes this condition?**\nIt is commonly caused by muscle imbalances, overuse, or sudden load changes.\n\n**Can physiotherapy help recover without surgery?**\nYes, targeted exercise therapy and manual therapy restore mobility in majority of cases.\n`;
+        break;
+      case "doctor":
+        replacement = `\n**Dr. Farhan Badshah – Sports and Orthopedic Physiotherapist**\nAli Medical Center, F-8 Markaz, Islamabad\n`;
+        break;
+    }
+
+    const before = val.substring(0, start);
+    const after = val.substring(end);
+    const newContent = before + replacement + after;
+
+    setArticleForm((prev) => ({ ...prev, content: newContent }));
+
+    setTimeout(() => {
+      textarea.focus();
+      const newCursor = start + replacement.length;
+      textarea.setSelectionRange(newCursor, newCursor);
+    }, 0);
+  };
 
   // Custom Admin Credentials State
   const [adminCreds, setAdminCreds] = useState(() => {
@@ -279,17 +397,23 @@ function AdminDashboard() {
     );
   });
   const [isPublishingLive, setIsPublishingLive] = useState(false);
-  const [liveCommitMsg, setLiveCommitMsg] = useState("chore(cms): update website content via Admin Panel");
+  const [liveCommitMsg, setLiveCommitMsg] = useState(
+    "chore(cms): update website content via Admin Panel",
+  );
 
   const handlePublishLive = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const tokenToUse =
       githubToken.trim() ||
-      (typeof window !== "undefined" ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY) || "" : "") ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem(GITHUB_PAT_STORAGE_KEY) || ""
+        : "") ||
       (import.meta.env.VITE_GITHUB_PAT as string | undefined) ||
       "";
     if (!tokenToUse) {
-      toast.error("Please enter a GitHub Personal Access Token to publish live.");
+      toast.error(
+        "Please enter a GitHub Personal Access Token to publish live.",
+      );
       return;
     }
     setIsPublishingLive(true);
@@ -435,7 +559,10 @@ function AdminDashboard() {
 
   const handleSaveQualification = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!qualificationForm.title.trim() || !qualificationForm.institution.trim()) {
+    if (
+      !qualificationForm.title.trim() ||
+      !qualificationForm.institution.trim()
+    ) {
       toast.error("Degree title and institution are required");
       return;
     }
@@ -519,12 +646,18 @@ function AdminDashboard() {
       slug: "",
       category: "Spine Care",
       readTime: "5 min read",
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      imageUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      imageUrl:
+        "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80",
       description: "",
       content: "",
       featured: false,
     });
+    setArticleContentTab("write");
     setArticleModalOpen(true);
   };
 
@@ -541,6 +674,7 @@ function AdminDashboard() {
       content: art.content || "",
       featured: !!art.featured,
     });
+    setArticleContentTab("write");
     setArticleModalOpen(true);
   };
 
@@ -555,8 +689,14 @@ function AdminDashboard() {
       return;
     }
     const cleanSlug = articleForm.slug.trim()
-      ? articleForm.slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
-      : articleForm.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      ? articleForm.slug
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+      : articleForm.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "");
 
     const payload = {
       ...articleForm,
@@ -585,7 +725,11 @@ function AdminDashboard() {
 
   const openEditFaq = (f: FAQItem) => {
     setEditingFaqId(f.id);
-    setFaqForm({ question: f.question || "", answer: f.answer || "", category: f.category || "Appointments" });
+    setFaqForm({
+      question: f.question || "",
+      answer: f.answer || "",
+      category: f.category || "Appointments",
+    });
     setFaqModalOpen(true);
   };
 
@@ -660,7 +804,7 @@ function AdminDashboard() {
       rating: t.rating || 5,
       date: t.date || "Recent",
       reviewCount: t.reviewCount || "Google Review",
-      initial: t.initial || (t.name?.[0]?.toUpperCase() || "P"),
+      initial: t.initial || t.name?.[0]?.toUpperCase() || "P",
     });
     setTestimonialModalOpen(true);
   };
@@ -756,7 +900,10 @@ function AdminDashboard() {
   // Manual Booking Helper
   const handleSaveManualBooking = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualBookingForm.patientName.trim() || !manualBookingForm.phone.trim()) {
+    if (
+      !manualBookingForm.patientName.trim() ||
+      !manualBookingForm.phone.trim()
+    ) {
       toast.error("Patient name and phone are required");
       return;
     }
@@ -813,7 +960,7 @@ function AdminDashboard() {
     link.setAttribute("href", encodedUri);
     link.setAttribute(
       "download",
-      `patient-inquiries-dr-farhan-${new Date().toISOString().split("T")[0]}.csv`
+      `patient-inquiries-dr-farhan-${new Date().toISOString().split("T")[0]}.csv`,
     );
     document.body.appendChild(link);
     link.click();
@@ -844,7 +991,9 @@ function AdminDashboard() {
   // Filtered inquiries list
   const filteredBookings = (data.bookings || []).filter((b) => {
     const matchesSearch =
-      b.patientName.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
+      b.patientName
+        .toLowerCase()
+        .includes(searchInquiriesQuery.toLowerCase()) ||
       b.phone.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
       b.service.toLowerCase().includes(searchInquiriesQuery.toLowerCase()) ||
       b.clinic.toLowerCase().includes(searchInquiriesQuery.toLowerCase());
@@ -957,18 +1106,24 @@ function AdminDashboard() {
             className="flex items-center gap-1 text-white/80 hover:text-white transition-colors"
           >
             <Home size={13} />
-            <span className="hidden md:inline">{data.hero?.name || "Dr. Farhan Badshah"}</span>
+            <span className="hidden md:inline">
+              {data.hero?.name || "Dr. Farhan Badshah"}
+            </span>
             <span className="text-[11px] text-white/60">↗ Visit Site</span>
           </Link>
 
           {/* New Bookings notification badge */}
-          {(data.bookings || []).filter((b) => b.status === "New").length > 0 && (
+          {(data.bookings || []).filter((b) => b.status === "New").length >
+            0 && (
             <button
               onClick={() => setActiveTab("bookings")}
               className="flex items-center gap-1 rounded bg-[#d63638] px-2 py-0.5 text-[11px] font-bold text-white hover:bg-[#b32d2e]"
             >
               <Calendar size={11} />
-              <span>{(data.bookings || []).filter((b) => b.status === "New").length} New Inquiries</span>
+              <span>
+                {(data.bookings || []).filter((b) => b.status === "New").length}{" "}
+                New Inquiries
+              </span>
             </button>
           )}
         </div>
@@ -1053,15 +1208,26 @@ function AdminDashboard() {
         {/* 2. WordPress Left Navigation Sidebar */}
         <aside
           className={`fixed inset-y-10 left-0 z-50 w-60 bg-[#1d2327] text-white shadow-2xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            mobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full md:translate-x-0"
           }`}
         >
           <nav className="flex flex-col py-2 text-[13px] font-normal">
             {[
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-              { id: "seo", label: "SEO & Meta Tags", icon: Search, badge: "Yoast" },
+              {
+                id: "seo",
+                label: "SEO & Meta Tags",
+                icon: Search,
+                badge: "Yoast",
+              },
               { id: "hero", label: "Doctor & Hero", icon: User },
-              { id: "services", label: "Specialties / Services", icon: Stethoscope },
+              {
+                id: "services",
+                label: "Specialties / Services",
+                icon: Stethoscope,
+              },
               { id: "clinics", label: "Clinics & Schedule", icon: MapPin },
               {
                 id: "articles",
@@ -1069,14 +1235,19 @@ function AdminDashboard() {
                 icon: BookOpen,
                 count: (data.articles || []).length,
               },
-              { id: "credentials", label: "Degrees & Licenses", icon: GraduationCap },
+              {
+                id: "credentials",
+                label: "Degrees & Licenses",
+                icon: GraduationCap,
+              },
               { id: "testimonials", label: "Patient Reviews", icon: Star },
               { id: "faqs", label: "FAQs Manager", icon: HelpCircle },
               {
                 id: "bookings",
                 label: "Patient Inquiries",
                 icon: Calendar,
-                count: (data.bookings || []).filter((b) => b.status === "New").length,
+                count: (data.bookings || []).filter((b) => b.status === "New")
+                  .length,
               },
               { id: "export", label: "Tools & Git Export", icon: Settings },
             ].map((item) => {
@@ -1126,7 +1297,9 @@ function AdminDashboard() {
                     Dashboard Overview
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Welcome back, Dr. Farhan. Manage live SEO, patient treatments, clinic hours, and incoming appointment inquiries.
+                    Welcome back, Dr. Farhan. Manage live SEO, patient
+                    treatments, clinic hours, and incoming appointment
+                    inquiries.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1145,47 +1318,71 @@ function AdminDashboard() {
               {/* Quick Stat Cards */}
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
-                  <div className="text-xs font-semibold text-[#646970]">SEO Health Score</div>
+                  <div className="text-xs font-semibold text-[#646970]">
+                    SEO Health Score
+                  </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-2xl font-bold text-emerald-600">98 / 100</span>
+                    <span className="text-2xl font-bold text-emerald-600">
+                      98 / 100
+                    </span>
                     <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
                       Excellent
                     </span>
                   </div>
-                  <div className="mt-1 text-[11px] text-[#646970]">Title, Meta, Schema.org active</div>
+                  <div className="mt-1 text-[11px] text-[#646970]">
+                    Title, Meta, Schema.org active
+                  </div>
                 </div>
 
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
-                  <div className="text-xs font-semibold text-[#646970]">Active Specialties</div>
+                  <div className="text-xs font-semibold text-[#646970]">
+                    Active Specialties
+                  </div>
                   <div className="mt-2 text-2xl font-bold text-[#1d2327]">
                     {(data.services || []).length}
                   </div>
-                  <div className="mt-1 text-[11px] text-[#646970]">Across 5 categories</div>
+                  <div className="mt-1 text-[11px] text-[#646970]">
+                    Across 5 categories
+                  </div>
                 </div>
 
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
-                  <div className="text-xs font-semibold text-[#646970]">Islamabad Clinics</div>
+                  <div className="text-xs font-semibold text-[#646970]">
+                    Islamabad Clinics
+                  </div>
                   <div className="mt-2 text-2xl font-bold text-[#1d2327]">
                     {(data.clinics || []).length}
                   </div>
-                  <div className="mt-1 text-[11px] text-[#646970]">Live schedule active</div>
+                  <div className="mt-1 text-[11px] text-[#646970]">
+                    Live schedule active
+                  </div>
                 </div>
 
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs">
-                  <div className="text-xs font-semibold text-[#646970]">Clinical Articles</div>
+                  <div className="text-xs font-semibold text-[#646970]">
+                    Clinical Articles
+                  </div>
                   <div className="mt-2 text-2xl font-bold text-indigo-600">
                     {(data.articles || []).length}
                   </div>
-                  <div className="mt-1 text-[11px] text-[#646970]">Patient Guides & Blog</div>
+                  <div className="mt-1 text-[11px] text-[#646970]">
+                    Patient Guides & Blog
+                  </div>
                 </div>
 
                 <div className="rounded-sm border border-[#c3c4c7] bg-white p-4 shadow-xs col-span-2 sm:col-span-1">
-                  <div className="text-xs font-semibold text-[#646970]">Total Inquiries</div>
+                  <div className="text-xs font-semibold text-[#646970]">
+                    Total Inquiries
+                  </div>
                   <div className="mt-2 text-2xl font-bold text-[#2271b1]">
                     {(data.bookings || []).length}
                   </div>
                   <div className="mt-1 text-[11px] text-[#646970]">
-                    {(data.bookings || []).filter((b) => b.status === "New").length} new pending
+                    {
+                      (data.bookings || []).filter((b) => b.status === "New")
+                        .length
+                    }{" "}
+                    new pending
                   </div>
                 </div>
               </div>
@@ -1290,8 +1487,13 @@ function AdminDashboard() {
                         </thead>
                         <tbody>
                           {(data.bookings || []).slice(0, 5).map((b) => (
-                            <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50">
-                              <td className="py-2 font-semibold text-[#1d2327]">{b.patientName}</td>
+                            <tr
+                              key={b.id}
+                              className="border-b border-slate-100 hover:bg-slate-50"
+                            >
+                              <td className="py-2 font-semibold text-[#1d2327]">
+                                {b.patientName}
+                              </td>
                               <td className="py-2">{b.phone}</td>
                               <td className="py-2">{b.clinic}</td>
                               <td className="py-2">{b.service}</td>
@@ -1301,8 +1503,8 @@ function AdminDashboard() {
                                     b.status === "New"
                                       ? "bg-amber-100 text-amber-800"
                                       : b.status === "Confirmed"
-                                      ? "bg-emerald-100 text-emerald-800"
-                                      : "bg-slate-100 text-slate-700"
+                                        ? "bg-emerald-100 text-emerald-800"
+                                        : "bg-slate-100 text-slate-700"
                                   }`}
                                 >
                                   {b.status}
@@ -1327,7 +1529,8 @@ function AdminDashboard() {
                   SEO & Search Engine Optimization
                 </h1>
                 <p className="text-xs text-[#50575e]">
-                  Manage meta titles, descriptions, Google SERP previews, and Schema.org rich snippets for top Google ranking in Islamabad.
+                  Manage meta titles, descriptions, Google SERP previews, and
+                  Schema.org rich snippets for top Google ranking in Islamabad.
                 </p>
               </div>
 
@@ -1341,7 +1544,9 @@ function AdminDashboard() {
                     <span className="grid h-4 w-4 place-items-center rounded-full bg-emerald-600 text-[9px] text-white font-bold">
                       D
                     </span>
-                    <span className="truncate">https://drfarhanbadshah.com</span>
+                    <span className="truncate">
+                      https://drfarhanbadshah.com
+                    </span>
                   </div>
                   <div className="mt-1 text-lg text-[#1a0dab] font-medium hover:underline cursor-pointer line-clamp-1">
                     {data.seo?.pageTitle ?? ""}
@@ -1363,7 +1568,9 @@ function AdminDashboard() {
                   </div>
                   <Input
                     value={data.seo?.pageTitle ?? ""}
-                    onChange={(e) => cms.updateSEO({ pageTitle: e.target.value })}
+                    onChange={(e) =>
+                      cms.updateSEO({ pageTitle: e.target.value })
+                    }
                     className="rounded"
                   />
                 </div>
@@ -1372,13 +1579,16 @@ function AdminDashboard() {
                   <div className="flex justify-between items-center text-xs font-bold text-[#1d2327]">
                     <label>Meta Description *</label>
                     <span className="text-[11px] text-muted-foreground">
-                      {(data.seo?.metaDescription || "").length} / 160 characters
+                      {(data.seo?.metaDescription || "").length} / 160
+                      characters
                     </span>
                   </div>
                   <Textarea
                     rows={3}
                     value={data.seo?.metaDescription ?? ""}
-                    onChange={(e) => cms.updateSEO({ metaDescription: e.target.value })}
+                    onChange={(e) =>
+                      cms.updateSEO({ metaDescription: e.target.value })
+                    }
                     className="rounded"
                   />
                 </div>
@@ -1390,15 +1600,21 @@ function AdminDashboard() {
                     </label>
                     <Input
                       value={data.seo?.keywords ?? ""}
-                      onChange={(e) => cms.updateSEO({ keywords: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateSEO({ keywords: e.target.value })
+                      }
                       className="rounded"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Canonical URL</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Canonical URL
+                    </label>
                     <Input
                       value={data.seo?.canonicalUrl ?? ""}
-                      onChange={(e) => cms.updateSEO({ canonicalUrl: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateSEO({ canonicalUrl: e.target.value })
+                      }
                       className="rounded"
                     />
                   </div>
@@ -1406,18 +1622,26 @@ function AdminDashboard() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">OpenGraph Social Title</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      OpenGraph Social Title
+                    </label>
                     <Input
                       value={data.seo?.ogTitle ?? ""}
-                      onChange={(e) => cms.updateSEO({ ogTitle: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateSEO({ ogTitle: e.target.value })
+                      }
                       className="rounded"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Social Image URL</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Social Image URL
+                    </label>
                     <Input
                       value={data.seo?.ogImage ?? ""}
-                      onChange={(e) => cms.updateSEO({ ogImage: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateSEO({ ogImage: e.target.value })
+                      }
                       className="rounded"
                     />
                   </div>
@@ -1443,74 +1667,105 @@ function AdminDashboard() {
                   Doctor Profile & Hero Header
                 </h1>
                 <p className="text-xs text-[#50575e]">
-                  Update Dr. Farhan's medical titles, introductory bio paragraphs, WhatsApp number, and clinic booking links.
+                  Update Dr. Farhan's medical titles, introductory bio
+                  paragraphs, WhatsApp number, and clinic booking links.
                 </p>
               </div>
 
               <div className="border border-[#c3c4c7] bg-white p-5 shadow-xs space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Full Name *</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Full Name *
+                    </label>
                     <Input
                       value={data.hero?.name ?? ""}
                       onChange={(e) => cms.updateHero({ name: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Professional Title *</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Professional Title *
+                    </label>
                     <Input
                       value={data.hero?.title ?? ""}
-                      onChange={(e) => cms.updateHero({ title: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateHero({ title: e.target.value })
+                      }
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#1d2327]">Hero Subtitle / Mission</label>
+                  <label className="text-xs font-bold text-[#1d2327]">
+                    Hero Subtitle / Mission
+                  </label>
                   <Textarea
                     rows={2}
                     value={data.hero?.subtitle ?? ""}
-                    onChange={(e) => cms.updateHero({ subtitle: e.target.value })}
+                    onChange={(e) =>
+                      cms.updateHero({ subtitle: e.target.value })
+                    }
                   />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">WhatsApp Phone (Digits)</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      WhatsApp Phone (Digits)
+                    </label>
                     <Input
                       value={data.contact?.whatsappNumber ?? ""}
-                      onChange={(e) => cms.updateContact({ whatsappNumber: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateContact({ whatsappNumber: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Direct Phone</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Direct Phone
+                    </label>
                     <Input
                       value={data.contact?.phone ?? ""}
-                      onChange={(e) => cms.updateContact({ phone: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateContact({ phone: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Email Address</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Email Address
+                    </label>
                     <Input
                       value={data.contact?.email ?? ""}
-                      onChange={(e) => cms.updateContact({ email: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateContact({ email: e.target.value })
+                      }
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Oladoc Profile URL</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Oladoc Profile URL
+                    </label>
                     <Input
                       value={data.hero?.oladocUrl ?? ""}
-                      onChange={(e) => cms.updateHero({ oladocUrl: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateHero({ oladocUrl: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[#1d2327]">Marham Profile URL</label>
+                    <label className="text-xs font-bold text-[#1d2327]">
+                      Marham Profile URL
+                    </label>
                     <Input
                       value={data.hero?.marhamUrl ?? ""}
-                      onChange={(e) => cms.updateHero({ marhamUrl: e.target.value })}
+                      onChange={(e) =>
+                        cms.updateHero({ marhamUrl: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -1524,7 +1779,10 @@ function AdminDashboard() {
                     <button
                       type="button"
                       onClick={() => {
-                        const updated = [...(data.bio || []), "New clinical bio paragraph..."];
+                        const updated = [
+                          ...(data.bio || []),
+                          "New clinical bio paragraph...",
+                        ];
                         cms.updateBio(updated);
                         toast.success("New paragraph added");
                       }}
@@ -1552,7 +1810,9 @@ function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => {
-                            const updated = (data.bio || []).filter((_, i) => i !== idx);
+                            const updated = (data.bio || []).filter(
+                              (_, i) => i !== idx,
+                            );
                             cms.updateBio(updated);
                             toast.info("Paragraph removed");
                           }}
@@ -1568,7 +1828,9 @@ function AdminDashboard() {
 
                 <div className="pt-2 flex justify-end">
                   <Button
-                    onClick={() => toast.success("Doctor profile updated successfully")}
+                    onClick={() =>
+                      toast.success("Doctor profile updated successfully")
+                    }
                     className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs px-6"
                   >
                     <Save size={14} className="mr-1.5" /> Save Changes
@@ -1587,7 +1849,8 @@ function AdminDashboard() {
                     Specialty Treatments ({(data.services || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Add, edit, or remove physiotherapy services shown on the live website.
+                    Add, edit, or remove physiotherapy services shown on the
+                    live website.
                   </p>
                 </div>
                 <Button
@@ -1611,8 +1874,13 @@ function AdminDashboard() {
                   </thead>
                   <tbody>
                     {(data.services || []).map((srv) => (
-                      <tr key={srv.id} className="border-b border-slate-100 hover:bg-slate-50/80">
-                        <td className="py-3 px-4 font-bold text-[#1d2327]">{srv.title}</td>
+                      <tr
+                        key={srv.id}
+                        className="border-b border-slate-100 hover:bg-slate-50/80"
+                      >
+                        <td className="py-3 px-4 font-bold text-[#1d2327]">
+                          {srv.title}
+                        </td>
                         <td className="py-3 px-4">
                           <span className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                             {srv.category}
@@ -1662,7 +1930,8 @@ function AdminDashboard() {
                     Clinics & Operating Timings ({(data.clinics || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Add, edit, or remove clinic locations and set operating shift hours.
+                    Add, edit, or remove clinic locations and set operating
+                    shift hours.
                   </p>
                 </div>
                 <Button
@@ -1677,76 +1946,81 @@ function AdminDashboard() {
                 {[...(data.clinics || [])]
                   .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
                   .map((clinic, idx) => (
-                  <div
-                    key={clinic.id}
-                    className="border border-[#c3c4c7] bg-white p-5 shadow-xs flex flex-col justify-between"
-                  >
-                    <div className="space-y-3">
-                      <div className="font-bold text-sm text-[#1d2327] flex items-center justify-between">
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={16} className="text-[#2271b1]" />
-                          {clinic.name}
-                        </span>
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 font-semibold">
-                          #{idx + 1}
-                        </span>
+                    <div
+                      key={clinic.id}
+                      className="border border-[#c3c4c7] bg-white p-5 shadow-xs flex flex-col justify-between"
+                    >
+                      <div className="space-y-3">
+                        <div className="font-bold text-sm text-[#1d2327] flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <MapPin size={16} className="text-[#2271b1]" />
+                            {clinic.name}
+                          </span>
+                          <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 font-semibold">
+                            #{idx + 1}
+                          </span>
+                        </div>
+
+                        <div className="text-xs text-[#50575e] leading-relaxed">
+                          <div className="font-semibold text-slate-800">
+                            Address:
+                          </div>
+                          <div>{clinic.address}</div>
+                        </div>
+
+                        <div className="rounded bg-slate-50 p-2.5 text-xs space-y-1">
+                          <div className="flex items-center justify-between text-[#1d2327] font-semibold">
+                            <span>{clinic.days}</span>
+                            <span className="text-[#2271b1]">
+                              {clinic.hours}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            Open: {clinic.openHour}:00 — Close:{" "}
+                            {clinic.closeHour}:00 (24h)
+                          </div>
+                        </div>
+
+                        {clinic.phone && (
+                          <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                            <Phone size={12} className="text-emerald-600" />
+                            <span>Direct Desk: {clinic.phone}</span>
+                          </div>
+                        )}
+
+                        {clinic.mapsUrl && (
+                          <a
+                            href={clinic.mapsUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-[#2271b1] hover:underline"
+                          >
+                            <ExternalLink size={11} /> View Google Maps Link
+                          </a>
+                        )}
                       </div>
 
-                      <div className="text-xs text-[#50575e] leading-relaxed">
-                        <div className="font-semibold text-slate-800">Address:</div>
-                        <div>{clinic.address}</div>
-                      </div>
-
-                      <div className="rounded bg-slate-50 p-2.5 text-xs space-y-1">
-                        <div className="flex items-center justify-between text-[#1d2327] font-semibold">
-                          <span>{clinic.days}</span>
-                          <span className="text-[#2271b1]">{clinic.hours}</span>
-                        </div>
-                        <div className="text-[11px] text-muted-foreground">
-                          Open: {clinic.openHour}:00 — Close: {clinic.closeHour}:00 (24h)
-                        </div>
-                      </div>
-
-                      {clinic.phone && (
-                        <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
-                          <Phone size={12} className="text-emerald-600" />
-                          <span>Direct Desk: {clinic.phone}</span>
-                        </div>
-                      )}
-
-                      {clinic.mapsUrl && (
-                        <a
-                          href={clinic.mapsUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] text-[#2271b1] hover:underline"
+                      <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <button
+                          onClick={() => openEditClinic(clinic)}
+                          className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-semibold"
                         >
-                          <ExternalLink size={11} /> View Google Maps Link
-                        </a>
-                      )}
+                          <FileEdit size={12} /> Edit Details
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete clinic "${clinic.name}"?`)) {
+                              cms.deleteClinic(clinic.id);
+                              toast.success("Clinic deleted");
+                            }
+                          }}
+                          className="text-xs text-[#d63638] hover:underline flex items-center gap-1"
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <button
-                        onClick={() => openEditClinic(clinic)}
-                        className="text-xs text-[#2271b1] hover:underline flex items-center gap-1 font-semibold"
-                      >
-                        <FileEdit size={12} /> Edit Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Delete clinic "${clinic.name}"?`)) {
-                            cms.deleteClinic(clinic.id);
-                            toast.success("Clinic deleted");
-                          }
-                        }}
-                        className="text-xs text-[#d63638] hover:underline flex items-center gap-1"
-                      >
-                        <Trash2 size={12} /> Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -1761,7 +2035,10 @@ function AdminDashboard() {
                     Clinical Articles & Blog ({(data.articles || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Write, manage, and publish evidence-based patient guides, pain relief tips, and sports rehab articles. Automatically indexed with Schema.org BlogPosting for Google and AI search visibility.
+                    Write, manage, and publish evidence-based patient guides,
+                    pain relief tips, and sports rehab articles. Automatically
+                    indexed with Schema.org BlogPosting for Google and AI search
+                    visibility.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1777,7 +2054,10 @@ function AdminDashboard() {
               {/* Filters & Search Toolbar */}
               <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-white border border-[#c3c4c7] p-3 rounded-sm shadow-xs">
                 <div className="relative flex-1 max-w-sm">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
                   <Input
                     placeholder="Search articles by title, excerpt, condition..."
                     value={searchArticleQuery}
@@ -1786,7 +2066,14 @@ function AdminDashboard() {
                   />
                 </div>
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                  {["All", "Spine Care", "Sports Medicine", "Posture & Ergonomics", "Joint Health", "Rehabilitation"].map((cat) => (
+                  {[
+                    "All",
+                    "Spine Care",
+                    "Sports Medicine",
+                    "Posture & Ergonomics",
+                    "Joint Health",
+                    "Rehabilitation",
+                  ].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setFilterArticleCategory(cat)}
@@ -1806,7 +2093,8 @@ function AdminDashboard() {
               {(() => {
                 const filtered = (data.articles || []).filter((a) => {
                   const matchesCat =
-                    filterArticleCategory === "All" || a.category === filterArticleCategory;
+                    filterArticleCategory === "All" ||
+                    a.category === filterArticleCategory;
                   const q = searchArticleQuery.trim().toLowerCase();
                   const matchesQuery =
                     !q ||
@@ -1820,15 +2108,21 @@ function AdminDashboard() {
                 if (filtered.length === 0) {
                   return (
                     <div className="rounded border border-[#c3c4c7] bg-white p-12 text-center shadow-xs">
-                      <BookOpen size={40} className="mx-auto text-slate-300 mb-3" />
-                      <h3 className="text-sm font-bold text-slate-700">No Articles Found</h3>
+                      <BookOpen
+                        size={40}
+                        className="mx-auto text-slate-300 mb-3"
+                      />
+                      <h3 className="text-sm font-bold text-slate-700">
+                        No Articles Found
+                      </h3>
                       <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
                         {searchArticleQuery || filterArticleCategory !== "All"
                           ? "No published articles matched your search filters. Try clearing your search."
                           : "You haven't written any articles yet. Add evidence-based rehabilitation advice and patient recovery tips to boost SEO and educate patients."}
                       </p>
                       <div className="mt-4 flex justify-center gap-2">
-                        {(searchArticleQuery || filterArticleCategory !== "All") && (
+                        {(searchArticleQuery ||
+                          filterArticleCategory !== "All") && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -1920,7 +2214,11 @@ function AdminDashboard() {
                             </a>
                             <button
                               onClick={() => {
-                                if (confirm(`Are you sure you want to delete "${art.title}"?`)) {
+                                if (
+                                  confirm(
+                                    `Are you sure you want to delete "${art.title}"?`,
+                                  )
+                                ) {
                                   cms.deleteArticle(art.id);
                                   toast.success("Article deleted");
                                 }
@@ -1947,7 +2245,8 @@ function AdminDashboard() {
                   Degrees, Certifications & Licenses
                 </h1>
                 <p className="text-xs text-[#50575e]">
-                  Add, edit, or delete degrees (DPT, MS), sports certifications (FIFA, OMT), and international licensure.
+                  Add, edit, or delete degrees (DPT, MS), sports certifications
+                  (FIFA, OMT), and international licensure.
                 </p>
               </div>
 
@@ -1956,7 +2255,10 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                     <ShieldCheck size={16} className="text-[#2271b1]" />
-                    <span>International Medical Licenses ({(data.licenses || []).length})</span>
+                    <span>
+                      International Medical Licenses (
+                      {(data.licenses || []).length})
+                    </span>
                   </div>
                   <Button
                     size="sm"
@@ -1974,10 +2276,16 @@ function AdminDashboard() {
                     >
                       <div>
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-[#1d2327]">{lic.code}</span>
-                          <span className="text-xs font-semibold text-[#2271b1]">{lic.region}</span>
+                          <span className="font-bold text-sm text-[#1d2327]">
+                            {lic.code}
+                          </span>
+                          <span className="text-xs font-semibold text-[#2271b1]">
+                            {lic.region}
+                          </span>
                         </div>
-                        <div className="mt-1 text-xs text-[#50575e]">{lic.fullName}</div>
+                        <div className="mt-1 text-xs text-[#50575e]">
+                          {lic.fullName}
+                        </div>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
                         <button
@@ -2008,7 +2316,10 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                     <GraduationCap size={16} className="text-[#2271b1]" />
-                    <span>Academic Qualifications & Degrees ({(data.qualifications || []).length})</span>
+                    <span>
+                      Academic Qualifications & Degrees (
+                      {(data.qualifications || []).length})
+                    </span>
                   </div>
                   <Button
                     size="sm"
@@ -2025,13 +2336,20 @@ function AdminDashboard() {
                       className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
                     >
                       <div>
-                        <div className="font-bold text-xs text-[#1d2327]">{q.title}</div>
-                        <div className="text-xs text-[#50575e]">{q.institution}</div>
-                        {q.year && !["completed", "ongoing"].includes(q.year.trim().toLowerCase()) && (
-                          <div className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                            {q.year}
-                          </div>
-                        )}
+                        <div className="font-bold text-xs text-[#1d2327]">
+                          {q.title}
+                        </div>
+                        <div className="text-xs text-[#50575e]">
+                          {q.institution}
+                        </div>
+                        {q.year &&
+                          !["completed", "ongoing"].includes(
+                            q.year.trim().toLowerCase(),
+                          ) && (
+                            <div className="mt-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                              {q.year}
+                            </div>
+                          )}
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
                         <button
@@ -2062,7 +2380,10 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                     <Award size={16} className="text-[#2271b1]" />
-                    <span>Specialized Certifications ({(data.certifications || []).length})</span>
+                    <span>
+                      Specialized Certifications (
+                      {(data.certifications || []).length})
+                    </span>
                   </div>
                   <Button
                     size="sm"
@@ -2079,8 +2400,12 @@ function AdminDashboard() {
                       className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
                     >
                       <div>
-                        <div className="font-bold text-xs text-[#1d2327]">{c.title}</div>
-                        <div className="text-xs text-[#50575e]">Issuer: {c.issuer}</div>
+                        <div className="font-bold text-xs text-[#1d2327]">
+                          {c.title}
+                        </div>
+                        <div className="text-xs text-[#50575e]">
+                          Issuer: {c.issuer}
+                        </div>
                       </div>
                       <div className="pt-2 border-t border-slate-100 flex justify-end gap-3 text-xs">
                         <button
@@ -2111,7 +2436,10 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                     <TrendingUp size={16} className="text-[#2271b1]" />
-                    <span>Practice Metrics & Impact Numbers ({(data.stats || []).length})</span>
+                    <span>
+                      Practice Metrics & Impact Numbers (
+                      {(data.stats || []).length})
+                    </span>
                   </div>
                   <Button
                     size="sm"
@@ -2128,8 +2456,12 @@ function AdminDashboard() {
                       className="rounded border border-slate-200 p-3.5 space-y-2 flex flex-col justify-between"
                     >
                       <div>
-                        <div className="font-bold text-lg text-primary">{s.value}</div>
-                        <div className="font-bold text-xs text-[#1d2327]">{s.label}</div>
+                        <div className="font-bold text-lg text-primary">
+                          {s.value}
+                        </div>
+                        <div className="font-bold text-xs text-[#1d2327]">
+                          {s.label}
+                        </div>
                         <div className="mt-1 text-[11px] text-[#50575e] leading-snug">
                           {s.description}
                         </div>
@@ -2169,7 +2501,8 @@ function AdminDashboard() {
                     Patient Testimonials ({(data.testimonials || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Manage patient reviews, ratings, and quotes displayed on the website.
+                    Manage patient reviews, ratings, and quotes displayed on the
+                    website.
                   </p>
                 </div>
                 <Button
@@ -2188,7 +2521,9 @@ function AdminDashboard() {
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-[#1d2327]">{t.name}</span>
+                        <span className="font-bold text-sm text-[#1d2327]">
+                          {t.name}
+                        </span>
                         <div className="flex text-amber-400">
                           {Array.from({ length: t.rating || 5 }).map((_, i) => (
                             <Star key={i} size={12} fill="currentColor" />
@@ -2237,7 +2572,8 @@ function AdminDashboard() {
                     Frequently Asked Questions ({(data.faqs || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Manage patient questions and detailed answers in the interactive accordion.
+                    Manage patient questions and detailed answers in the
+                    interactive accordion.
                   </p>
                 </div>
                 <Button
@@ -2300,10 +2636,12 @@ function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#c3c4c7]/40 pb-4">
                 <div>
                   <h1 className="text-2xl font-bold text-[#1d2327]">
-                    Patient Inquiries & Appointments ({(data.bookings || []).length})
+                    Patient Inquiries & Appointments (
+                    {(data.bookings || []).length})
                   </h1>
                   <p className="text-xs text-[#50575e]">
-                    Manage consultation bookings, one-click WhatsApp confirmations, doctor's notes, and export to CSV.
+                    Manage consultation bookings, one-click WhatsApp
+                    confirmations, doctor's notes, and export to CSV.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -2320,7 +2658,11 @@ function AdminDashboard() {
                     onClick={handleExportInquiriesCSV}
                     className="text-xs h-8 bg-white border-slate-300"
                   >
-                    <FileSpreadsheet size={13} className="mr-1 text-emerald-600" /> Export CSV
+                    <FileSpreadsheet
+                      size={13}
+                      className="mr-1 text-emerald-600"
+                    />{" "}
+                    Export CSV
                   </Button>
                 </div>
               </div>
@@ -2328,11 +2670,44 @@ function AdminDashboard() {
               {/* Quick Status Filter Pills with Live Counters */}
               <div className="flex flex-wrap items-center gap-2">
                 {[
-                  { key: "All", label: "All Inquiries", count: (data.bookings || []).length, badgeBg: "bg-slate-200 text-slate-800" },
-                  { key: "New", label: "New Leads", count: (data.bookings || []).filter((b) => b.status === "New").length, badgeBg: "bg-amber-100 text-amber-800" },
-                  { key: "Confirmed", label: "Confirmed", count: (data.bookings || []).filter((b) => b.status === "Confirmed").length, badgeBg: "bg-emerald-100 text-emerald-800" },
-                  { key: "Completed", label: "Completed", count: (data.bookings || []).filter((b) => b.status === "Completed").length, badgeBg: "bg-blue-100 text-blue-800" },
-                  { key: "Cancelled", label: "Cancelled", count: (data.bookings || []).filter((b) => b.status === "Cancelled").length, badgeBg: "bg-rose-100 text-rose-800" },
+                  {
+                    key: "All",
+                    label: "All Inquiries",
+                    count: (data.bookings || []).length,
+                    badgeBg: "bg-slate-200 text-slate-800",
+                  },
+                  {
+                    key: "New",
+                    label: "New Leads",
+                    count: (data.bookings || []).filter(
+                      (b) => b.status === "New",
+                    ).length,
+                    badgeBg: "bg-amber-100 text-amber-800",
+                  },
+                  {
+                    key: "Confirmed",
+                    label: "Confirmed",
+                    count: (data.bookings || []).filter(
+                      (b) => b.status === "Confirmed",
+                    ).length,
+                    badgeBg: "bg-emerald-100 text-emerald-800",
+                  },
+                  {
+                    key: "Completed",
+                    label: "Completed",
+                    count: (data.bookings || []).filter(
+                      (b) => b.status === "Completed",
+                    ).length,
+                    badgeBg: "bg-blue-100 text-blue-800",
+                  },
+                  {
+                    key: "Cancelled",
+                    label: "Cancelled",
+                    count: (data.bookings || []).filter(
+                      (b) => b.status === "Cancelled",
+                    ).length,
+                    badgeBg: "bg-rose-100 text-rose-800",
+                  },
                 ].map((chip) => (
                   <button
                     key={chip.key}
@@ -2360,7 +2735,10 @@ function AdminDashboard() {
               {/* Filter & Search Bar */}
               <div className="flex flex-col sm:flex-row items-center gap-3 bg-white p-3 border border-[#c3c4c7]">
                 <div className="relative flex-1 w-full">
-                  <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-2.5 text-slate-400"
+                  />
                   <Input
                     placeholder="Search patient name, phone, clinic, or service..."
                     value={searchInquiriesQuery}
@@ -2369,7 +2747,9 @@ function AdminDashboard() {
                   />
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <span className="text-xs font-semibold text-slate-600">Status:</span>
+                  <span className="text-xs font-semibold text-slate-600">
+                    Status:
+                  </span>
                   <select
                     value={statusInquiriesFilter}
                     onChange={(e) => setStatusInquiriesFilter(e.target.value)}
@@ -2417,10 +2797,10 @@ function AdminDashboard() {
                             b.status === "New"
                               ? "bg-amber-50 text-amber-800 border-amber-300"
                               : b.status === "Confirmed"
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                              : b.status === "Completed"
-                              ? "bg-blue-50 text-blue-800 border-blue-300"
-                              : "bg-slate-100 text-slate-600 border-slate-300"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                : b.status === "Completed"
+                                  ? "bg-blue-50 text-blue-800 border-blue-300"
+                                  : "bg-slate-100 text-slate-600 border-slate-300"
                           }`}
                         >
                           <option value="New">New</option>
@@ -2432,16 +2812,24 @@ function AdminDashboard() {
 
                       <div className="rounded bg-slate-50 p-2.5 text-xs space-y-1 border border-slate-100">
                         <div className="flex justify-between text-slate-700">
-                          <span className="font-medium text-slate-500">Care:</span>
+                          <span className="font-medium text-slate-500">
+                            Care:
+                          </span>
                           <span className="font-bold">{b.service}</span>
                         </div>
                         <div className="flex justify-between text-slate-700">
-                          <span className="font-medium text-slate-500">Clinic:</span>
+                          <span className="font-medium text-slate-500">
+                            Clinic:
+                          </span>
                           <span>{b.clinic}</span>
                         </div>
                         <div className="flex justify-between text-slate-700">
-                          <span className="font-medium text-slate-500">Slot:</span>
-                          <span>{b.preferredDate} ({b.preferredTimeSlot})</span>
+                          <span className="font-medium text-slate-500">
+                            Slot:
+                          </span>
+                          <span>
+                            {b.preferredDate} ({b.preferredTimeSlot})
+                          </span>
                         </div>
                         {b.notes && (
                           <div className="pt-1 text-[11px] text-slate-600 italic">
@@ -2479,7 +2867,9 @@ function AdminDashboard() {
                         </a>
                         <button
                           onClick={() => {
-                            if (confirm(`Delete inquiry for ${b.patientName}?`)) {
+                            if (
+                              confirm(`Delete inquiry for ${b.patientName}?`)
+                            ) {
                               cms.deleteBooking(b.id);
                               toast.success("Inquiry removed");
                             }
@@ -2512,15 +2902,23 @@ function AdminDashboard() {
                   <tbody>
                     {filteredBookings.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-slate-400">
+                        <td
+                          colSpan={8}
+                          className="py-8 text-center text-slate-400"
+                        >
                           No inquiries match the current search or filter.
                         </td>
                       </tr>
                     ) : (
                       filteredBookings.map((b) => {
                         return (
-                          <tr key={b.id} className="border-b border-slate-100 hover:bg-slate-50/80">
-                            <td className="py-3 px-4 text-[#646970] whitespace-nowrap">{b.createdAt}</td>
+                          <tr
+                            key={b.id}
+                            className="border-b border-slate-100 hover:bg-slate-50/80"
+                          >
+                            <td className="py-3 px-4 text-[#646970] whitespace-nowrap">
+                              {b.createdAt}
+                            </td>
                             <td className="py-3 px-4 font-bold text-[#1d2327]">
                               <div>{b.patientName}</div>
                               {b.notes && (
@@ -2543,7 +2941,9 @@ function AdminDashboard() {
                               </a>
                             </td>
                             <td className="py-3 px-4 whitespace-nowrap">
-                              <div className="font-medium text-slate-800">{b.clinic}</div>
+                              <div className="font-medium text-slate-800">
+                                {b.clinic}
+                              </div>
                               <span className="text-[10px] text-muted-foreground">
                                 {b.appointmentType || "Clinic Visit"}
                               </span>
@@ -2552,22 +2952,28 @@ function AdminDashboard() {
                               {b.service}
                             </td>
                             <td className="py-3 px-4 whitespace-nowrap">
-                              {b.preferredDate} <span className="text-slate-400">({b.preferredTimeSlot})</span>
+                              {b.preferredDate}{" "}
+                              <span className="text-slate-400">
+                                ({b.preferredTimeSlot})
+                              </span>
                             </td>
                             <td className="py-3 px-4 whitespace-nowrap">
                               <select
                                 value={b.status}
                                 onChange={(e) =>
-                                  cms.updateBookingStatus(b.id, e.target.value as any)
+                                  cms.updateBookingStatus(
+                                    b.id,
+                                    e.target.value as any,
+                                  )
                                 }
                                 className={`rounded border px-2 py-1 text-[11px] font-bold ${
                                   b.status === "New"
                                     ? "bg-amber-50 text-amber-800 border-amber-300"
                                     : b.status === "Confirmed"
-                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                                    : b.status === "Completed"
-                                    ? "bg-blue-50 text-blue-800 border-blue-300"
-                                    : "bg-slate-100 text-slate-600 border-slate-300"
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                      : b.status === "Completed"
+                                        ? "bg-blue-50 text-blue-800 border-blue-300"
+                                        : "bg-slate-100 text-slate-600 border-slate-300"
                                 }`}
                               >
                                 <option value="New">New</option>
@@ -2608,7 +3014,11 @@ function AdminDashboard() {
                                 {/* Delete */}
                                 <button
                                   onClick={() => {
-                                    if (confirm(`Delete inquiry for ${b.patientName}?`)) {
+                                    if (
+                                      confirm(
+                                        `Delete inquiry for ${b.patientName}?`,
+                                      )
+                                    ) {
                                       cms.deleteBooking(b.id);
                                       toast.success("Inquiry removed");
                                     }
@@ -2638,7 +3048,9 @@ function AdminDashboard() {
                   CMS Tools, Backup & Git Export
                 </h1>
                 <p className="text-xs text-[#50575e]">
-                  Export your edits to code for merging back into the repository, backup all CMS state as JSON, or restore from a previous backup.
+                  Export your edits to code for merging back into the
+                  repository, backup all CMS state as JSON, or restore from a
+                  previous backup.
                 </p>
               </div>
 
@@ -2648,10 +3060,18 @@ function AdminDashboard() {
                   <div>
                     <div className="font-bold text-sm text-emerald-950 flex items-center gap-2">
                       <Send size={16} className="text-emerald-600" />
-                      <span>1-Click Publish to Live Website (Direct GitHub Sync)</span>
+                      <span>
+                        1-Click Publish to Live Website (Direct GitHub Sync)
+                      </span>
                     </div>
                     <p className="text-xs text-emerald-800 mt-1">
-                      Directly commit all current edits (Clinics, Articles, SEO, Services) to your repository (<code className="font-mono font-bold">mustafaabadshah/Dr-Farhan-Badshah</code>). Your live website updates immediately without needing to open VS Code or Git!
+                      Directly commit all current edits (Clinics, Articles, SEO,
+                      Services) to your repository (
+                      <code className="font-mono font-bold">
+                        mustafaabadshah/Dr-Farhan-Badshah
+                      </code>
+                      ). Your live website updates immediately without needing
+                      to open VS Code or Git!
                     </p>
                   </div>
                   <Button
@@ -2667,9 +3087,13 @@ function AdminDashboard() {
                   <span className="text-slate-600">
                     GitHub Connection:{" "}
                     {githubToken ? (
-                      <strong className="text-emerald-700">Connected (Token Saved in Browser)</strong>
+                      <strong className="text-emerald-700">
+                        Connected (Token Saved in Browser)
+                      </strong>
                     ) : (
-                      <span className="text-amber-700 font-medium">Token not configured yet</span>
+                      <span className="text-amber-700 font-medium">
+                        Token not configured yet
+                      </span>
                     )}
                   </span>
                   <button
@@ -2686,12 +3110,17 @@ function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-sm text-[#1d2327] flex items-center gap-2">
                     <Code2 size={16} className="text-[#2271b1]" />
-                    <span>Merge Back to Git Repository (portfolioData.ts snippet)</span>
+                    <span>
+                      Merge Back to Git Repository (portfolioData.ts snippet)
+                    </span>
                   </div>
                   <Button
                     size="sm"
                     onClick={() =>
-                      copyToClipboard(cms.generateExportCode(), "TypeScript config")
+                      copyToClipboard(
+                        cms.generateExportCode(),
+                        "TypeScript config",
+                      )
                     }
                     className="bg-[#2271b1] hover:bg-[#135e96] text-white text-xs"
                   >
@@ -2703,7 +3132,8 @@ function AdminDashboard() {
                   <code className="bg-slate-100 px-1 py-0.5 rounded font-mono">
                     src/data/portfolioData.ts
                   </code>
-                  . Copy and paste it whenever you wish to commit CMS updates permanently to your git repository branch.
+                  . Copy and paste it whenever you wish to commit CMS updates
+                  permanently to your git repository branch.
                 </p>
                 <div className="max-h-60 overflow-y-auto rounded bg-slate-900 p-3 font-mono text-[11px] text-slate-100">
                   <pre>{cms.generateExportCode()}</pre>
@@ -2718,7 +3148,8 @@ function AdminDashboard() {
                     <span>Download JSON Backup</span>
                   </div>
                   <p className="text-xs text-[#50575e]">
-                    Save a full offline snapshot of all SEO tags, services, clinics, FAQs, and testimonials.
+                    Save a full offline snapshot of all SEO tags, services,
+                    clinics, FAQs, and testimonials.
                   </p>
                   <Button
                     onClick={() => {
@@ -2744,7 +3175,8 @@ function AdminDashboard() {
                     <span>Restore From JSON</span>
                   </div>
                   <p className="text-xs text-[#50575e]">
-                    Upload a previously exported JSON backup to instantly restore content.
+                    Upload a previously exported JSON backup to instantly
+                    restore content.
                   </p>
                   <input
                     type="file"
@@ -2777,10 +3209,13 @@ function AdminDashboard() {
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingClinicId ? "Edit Clinic Details" : "Add New Clinic Location"}
+              {editingClinicId
+                ? "Edit Clinic Details"
+                : "Add New Clinic Location"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Configure clinic location, operational shift hours, and direction map link.
+              Configure clinic location, operational shift hours, and direction
+              map link.
             </DialogDescription>
           </DialogHeader>
 
@@ -2790,7 +3225,9 @@ function AdminDashboard() {
               <Input
                 required
                 value={clinicForm.name}
-                onChange={(e) => setClinicForm({ ...clinicForm, name: e.target.value })}
+                onChange={(e) =>
+                  setClinicForm({ ...clinicForm, name: e.target.value })
+                }
                 placeholder="e.g. Ali Medical Center"
               />
             </div>
@@ -2800,7 +3237,9 @@ function AdminDashboard() {
               <Input
                 required
                 value={clinicForm.address}
-                onChange={(e) => setClinicForm({ ...clinicForm, address: e.target.value })}
+                onChange={(e) =>
+                  setClinicForm({ ...clinicForm, address: e.target.value })
+                }
                 placeholder="e.g. F-8 Markaz, Islamabad"
               />
             </div>
@@ -2810,7 +3249,9 @@ function AdminDashboard() {
                 <label className="text-xs font-bold">Hours Label</label>
                 <Input
                   value={clinicForm.hours}
-                  onChange={(e) => setClinicForm({ ...clinicForm, hours: e.target.value })}
+                  onChange={(e) =>
+                    setClinicForm({ ...clinicForm, hours: e.target.value })
+                  }
                   placeholder="e.g. 9:00 AM – 2:00 PM"
                 />
               </div>
@@ -2818,7 +3259,9 @@ function AdminDashboard() {
                 <label className="text-xs font-bold">Operating Days</label>
                 <Input
                   value={clinicForm.days}
-                  onChange={(e) => setClinicForm({ ...clinicForm, days: e.target.value })}
+                  onChange={(e) =>
+                    setClinicForm({ ...clinicForm, days: e.target.value })
+                  }
                   placeholder="e.g. Mon – Sat"
                 />
               </div>
@@ -2826,32 +3269,46 @@ function AdminDashboard() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold">Open Hour (24h format)</label>
+                <label className="text-xs font-bold">
+                  Open Hour (24h format)
+                </label>
                 <Input
                   type="number"
                   value={clinicForm.openHour}
                   onChange={(e) =>
-                    setClinicForm({ ...clinicForm, openHour: parseInt(e.target.value) || 0 })
+                    setClinicForm({
+                      ...clinicForm,
+                      openHour: parseInt(e.target.value) || 0,
+                    })
                   }
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold">Close Hour (24h format)</label>
+                <label className="text-xs font-bold">
+                  Close Hour (24h format)
+                </label>
                 <Input
                   type="number"
                   value={clinicForm.closeHour}
                   onChange={(e) =>
-                    setClinicForm({ ...clinicForm, closeHour: parseInt(e.target.value) || 0 })
+                    setClinicForm({
+                      ...clinicForm,
+                      closeHour: parseInt(e.target.value) || 0,
+                    })
                   }
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Direct Clinic Phone / Desk Ext (Optional)</label>
+              <label className="text-xs font-bold">
+                Direct Clinic Phone / Desk Ext (Optional)
+              </label>
               <Input
                 value={clinicForm.phone}
-                onChange={(e) => setClinicForm({ ...clinicForm, phone: e.target.value })}
+                onChange={(e) =>
+                  setClinicForm({ ...clinicForm, phone: e.target.value })
+                }
                 placeholder="e.g. +92 51 8449900 or +92 300 XXXXXXX"
               />
             </div>
@@ -2860,7 +3317,9 @@ function AdminDashboard() {
               <label className="text-xs font-bold">Google Maps URL</label>
               <Input
                 value={clinicForm.mapsUrl}
-                onChange={(e) => setClinicForm({ ...clinicForm, mapsUrl: e.target.value })}
+                onChange={(e) =>
+                  setClinicForm({ ...clinicForm, mapsUrl: e.target.value })
+                }
                 placeholder="https://maps.google.com/?q=..."
               />
             </div>
@@ -2874,7 +3333,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save Clinic
               </Button>
             </div>
@@ -2883,11 +3346,16 @@ function AdminDashboard() {
       </Dialog>
 
       {/* 2. QUALIFICATION MODAL */}
-      <Dialog open={qualificationModalOpen} onOpenChange={setQualificationModalOpen}>
+      <Dialog
+        open={qualificationModalOpen}
+        onOpenChange={setQualificationModalOpen}
+      >
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingQualificationId ? "Edit Degree Qualification" : "Add New Academic Degree"}
+              {editingQualificationId
+                ? "Edit Degree Qualification"
+                : "Add New Academic Degree"}
             </DialogTitle>
             <DialogDescription className="text-xs">
               Degrees, fellowships, and clinical postgraduate diplomas.
@@ -2901,30 +3369,43 @@ function AdminDashboard() {
                 required
                 value={qualificationForm.title}
                 onChange={(e) =>
-                  setQualificationForm({ ...qualificationForm, title: e.target.value })
+                  setQualificationForm({
+                    ...qualificationForm,
+                    title: e.target.value,
+                  })
                 }
                 placeholder="e.g. Doctor of Physiotherapy (DPT)"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">University / Institution *</label>
+              <label className="text-xs font-bold">
+                University / Institution *
+              </label>
               <Input
                 required
                 value={qualificationForm.institution}
                 onChange={(e) =>
-                  setQualificationForm({ ...qualificationForm, institution: e.target.value })
+                  setQualificationForm({
+                    ...qualificationForm,
+                    institution: e.target.value,
+                  })
                 }
                 placeholder="e.g. AUST, Abbottabad"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Graduation Year (Optional)</label>
+              <label className="text-xs font-bold">
+                Graduation Year (Optional)
+              </label>
               <Input
                 value={qualificationForm.year}
                 onChange={(e) =>
-                  setQualificationForm({ ...qualificationForm, year: e.target.value })
+                  setQualificationForm({
+                    ...qualificationForm,
+                    year: e.target.value,
+                  })
                 }
                 placeholder="e.g. 2024 (Leave blank if not applicable)"
               />
@@ -2939,7 +3420,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save Degree
               </Button>
             </div>
@@ -2948,14 +3433,20 @@ function AdminDashboard() {
       </Dialog>
 
       {/* 3. CERTIFICATION MODAL */}
-      <Dialog open={certificationModalOpen} onOpenChange={setCertificationModalOpen}>
+      <Dialog
+        open={certificationModalOpen}
+        onOpenChange={setCertificationModalOpen}
+      >
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingCertificationId ? "Edit Certification" : "Add Specialized Certification"}
+              {editingCertificationId
+                ? "Edit Certification"
+                : "Add Specialized Certification"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Clinical sport diplomas, kinesiology taping, strength & conditioning certifications.
+              Clinical sport diplomas, kinesiology taping, strength &
+              conditioning certifications.
             </DialogDescription>
           </DialogHeader>
 
@@ -2966,19 +3457,27 @@ function AdminDashboard() {
                 required
                 value={certificationForm.title}
                 onChange={(e) =>
-                  setCertificationForm({ ...certificationForm, title: e.target.value })
+                  setCertificationForm({
+                    ...certificationForm,
+                    title: e.target.value,
+                  })
                 }
                 placeholder="e.g. Diploma in Football Medicine"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Issuing Authority / Council *</label>
+              <label className="text-xs font-bold">
+                Issuing Authority / Council *
+              </label>
               <Input
                 required
                 value={certificationForm.issuer}
                 onChange={(e) =>
-                  setCertificationForm({ ...certificationForm, issuer: e.target.value })
+                  setCertificationForm({
+                    ...certificationForm,
+                    issuer: e.target.value,
+                  })
                 }
                 placeholder="e.g. FIFA, OMT"
               />
@@ -2993,7 +3492,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save Certification
               </Button>
             </div>
@@ -3006,7 +3509,9 @@ function AdminDashboard() {
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingLicenseId ? "Edit Medical License" : "Add International Medical License"}
+              {editingLicenseId
+                ? "Edit Medical License"
+                : "Add International Medical License"}
             </DialogTitle>
             <DialogDescription className="text-xs">
               Official healthcare registration council credentials.
@@ -3060,7 +3565,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save License
               </Button>
             </div>
@@ -3069,12 +3578,18 @@ function AdminDashboard() {
       </Dialog>
 
       {/* 5. MANUAL BOOKING MODAL */}
-      <Dialog open={manualBookingModalOpen} onOpenChange={setManualBookingModalOpen}>
+      <Dialog
+        open={manualBookingModalOpen}
+        onOpenChange={setManualBookingModalOpen}
+      >
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Record Patient Appointment</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Record Patient Appointment
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              Record a phone or walk-in patient consultation in the clinic register.
+              Record a phone or walk-in patient consultation in the clinic
+              register.
             </DialogDescription>
           </DialogHeader>
 
@@ -3085,7 +3600,10 @@ function AdminDashboard() {
                 required
                 value={manualBookingForm.patientName}
                 onChange={(e) =>
-                  setManualBookingForm({ ...manualBookingForm, patientName: e.target.value })
+                  setManualBookingForm({
+                    ...manualBookingForm,
+                    patientName: e.target.value,
+                  })
                 }
                 placeholder="e.g. Tariq Mehmood"
               />
@@ -3097,7 +3615,10 @@ function AdminDashboard() {
                 required
                 value={manualBookingForm.phone}
                 onChange={(e) =>
-                  setManualBookingForm({ ...manualBookingForm, phone: e.target.value })
+                  setManualBookingForm({
+                    ...manualBookingForm,
+                    phone: e.target.value,
+                  })
                 }
                 placeholder="+92 3XX XXXXXXX"
               />
@@ -3109,7 +3630,10 @@ function AdminDashboard() {
                 <select
                   value={manualBookingForm.clinic}
                   onChange={(e) =>
-                    setManualBookingForm({ ...manualBookingForm, clinic: e.target.value })
+                    setManualBookingForm({
+                      ...manualBookingForm,
+                      clinic: e.target.value,
+                    })
                   }
                   className="w-full rounded border border-input p-2 text-xs"
                 >
@@ -3126,7 +3650,10 @@ function AdminDashboard() {
                 <select
                   value={manualBookingForm.service}
                   onChange={(e) =>
-                    setManualBookingForm({ ...manualBookingForm, service: e.target.value })
+                    setManualBookingForm({
+                      ...manualBookingForm,
+                      service: e.target.value,
+                    })
                   }
                   className="w-full rounded border border-input p-2 text-xs"
                 >
@@ -3146,7 +3673,10 @@ function AdminDashboard() {
                   type="date"
                   value={manualBookingForm.preferredDate}
                   onChange={(e) =>
-                    setManualBookingForm({ ...manualBookingForm, preferredDate: e.target.value })
+                    setManualBookingForm({
+                      ...manualBookingForm,
+                      preferredDate: e.target.value,
+                    })
                   }
                 />
               </div>
@@ -3166,12 +3696,17 @@ function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Condition / Doctor Notes</label>
+              <label className="text-xs font-bold">
+                Condition / Doctor Notes
+              </label>
               <Textarea
                 rows={2}
                 value={manualBookingForm.notes}
                 onChange={(e) =>
-                  setManualBookingForm({ ...manualBookingForm, notes: e.target.value })
+                  setManualBookingForm({
+                    ...manualBookingForm,
+                    notes: e.target.value,
+                  })
                 }
                 placeholder="Initial diagnosis or patient symptoms..."
               />
@@ -3186,7 +3721,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Record Patient
               </Button>
             </div>
@@ -3199,10 +3738,13 @@ function AdminDashboard() {
         <DialogContent className="max-w-md rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingServiceId ? "Edit Specialty Service" : "Add New Specialty Service"}
+              {editingServiceId
+                ? "Edit Specialty Service"
+                : "Add New Specialty Service"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Configure treatment title, category filter, and clinical description.
+              Configure treatment title, category filter, and clinical
+              description.
             </DialogDescription>
           </DialogHeader>
 
@@ -3267,7 +3809,10 @@ function AdminDashboard() {
                 rows={3}
                 value={serviceForm.description}
                 onChange={(e) =>
-                  setServiceForm({ ...serviceForm, description: e.target.value })
+                  setServiceForm({
+                    ...serviceForm,
+                    description: e.target.value,
+                  })
                 }
                 placeholder="Brief explanation of the treatment benefits..."
               />
@@ -3282,7 +3827,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save Service
               </Button>
             </div>
@@ -3298,7 +3847,8 @@ function AdminDashboard() {
               {editingFaqId ? "Edit FAQ" : "Add Patient FAQ"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Answer common patient questions regarding treatments, visits, and recovery.
+              Answer common patient questions regarding treatments, visits, and
+              recovery.
             </DialogDescription>
           </DialogHeader>
 
@@ -3307,7 +3857,9 @@ function AdminDashboard() {
               <label className="text-xs font-bold">Category</label>
               <Input
                 value={faqForm.category}
-                onChange={(e) => setFaqForm({ ...faqForm, category: e.target.value })}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, category: e.target.value })
+                }
                 placeholder="e.g. Appointments, Recovery, Preparation"
               />
             </div>
@@ -3317,7 +3869,9 @@ function AdminDashboard() {
               <Input
                 required
                 value={faqForm.question}
-                onChange={(e) => setFaqForm({ ...faqForm, question: e.target.value })}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, question: e.target.value })
+                }
                 placeholder="e.g. Do I need an MRI before my first visit?"
               />
             </div>
@@ -3328,7 +3882,9 @@ function AdminDashboard() {
                 rows={4}
                 required
                 value={faqForm.answer}
-                onChange={(e) => setFaqForm({ ...faqForm, answer: e.target.value })}
+                onChange={(e) =>
+                  setFaqForm({ ...faqForm, answer: e.target.value })
+                }
                 placeholder="Clear, evidence-based guidance for the patient..."
               />
             </div>
@@ -3342,7 +3898,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save FAQ
               </Button>
             </div>
@@ -3351,11 +3911,16 @@ function AdminDashboard() {
       </Dialog>
 
       {/* TESTIMONIAL MODAL */}
-      <Dialog open={testimonialModalOpen} onOpenChange={setTestimonialModalOpen}>
+      <Dialog
+        open={testimonialModalOpen}
+        onOpenChange={setTestimonialModalOpen}
+      >
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">
-              {editingTestimonialId ? "Edit Patient Review" : "Add Patient Review"}
+              {editingTestimonialId
+                ? "Edit Patient Review"
+                : "Add Patient Review"}
             </DialogTitle>
             <DialogDescription className="text-xs">
               Add positive patient feedback to build social proof.
@@ -3369,7 +3934,10 @@ function AdminDashboard() {
                 required
                 value={testimonialForm.name}
                 onChange={(e) =>
-                  setTestimonialForm({ ...testimonialForm, name: e.target.value })
+                  setTestimonialForm({
+                    ...testimonialForm,
+                    name: e.target.value,
+                  })
                 }
                 placeholder="e.g. Bilal Aslam"
               />
@@ -3416,7 +3984,10 @@ function AdminDashboard() {
                 required
                 value={testimonialForm.quote}
                 onChange={(e) =>
-                  setTestimonialForm({ ...testimonialForm, quote: e.target.value })
+                  setTestimonialForm({
+                    ...testimonialForm,
+                    quote: e.target.value,
+                  })
                 }
                 placeholder="Patient's experience, diagnosis, and recovery results..."
               />
@@ -3431,7 +4002,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 {editingTestimonialId ? "Save Review" : "Add Review"}
               </Button>
             </div>
@@ -3447,7 +4022,8 @@ function AdminDashboard() {
               {editingStatId ? "Edit Practice Metric" : "Add Practice Metric"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Highlight key accomplishments (e.g. 10+ Years, 1,500+ Patients, 3 Licenses).
+              Highlight key accomplishments (e.g. 10+ Years, 1,500+ Patients, 3
+              Licenses).
             </DialogDescription>
           </DialogHeader>
 
@@ -3457,7 +4033,9 @@ function AdminDashboard() {
               <Input
                 required
                 value={statForm.value}
-                onChange={(e) => setStatForm({ ...statForm, value: e.target.value })}
+                onChange={(e) =>
+                  setStatForm({ ...statForm, value: e.target.value })
+                }
                 placeholder="e.g. 10+, 1,500+, 3, 99%"
               />
             </div>
@@ -3467,16 +4045,22 @@ function AdminDashboard() {
               <Input
                 required
                 value={statForm.label}
-                onChange={(e) => setStatForm({ ...statForm, label: e.target.value })}
+                onChange={(e) =>
+                  setStatForm({ ...statForm, label: e.target.value })
+                }
                 placeholder="e.g. Years Clinical Experience, Patients Treated"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Subtitle / Description</label>
+              <label className="text-xs font-bold">
+                Subtitle / Description
+              </label>
               <Input
                 value={statForm.description}
-                onChange={(e) => setStatForm({ ...statForm, description: e.target.value })}
+                onChange={(e) =>
+                  setStatForm({ ...statForm, description: e.target.value })
+                }
                 placeholder="e.g. In hospital & outpatient rehabilitation"
               />
             </div>
@@ -3490,7 +4074,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 {editingStatId ? "Save Metric" : "Add Metric"}
               </Button>
             </div>
@@ -3499,7 +4087,10 @@ function AdminDashboard() {
       </Dialog>
 
       {/* EDIT PATIENT INQUIRY & DOCTOR NOTES MODAL */}
-      <Dialog open={bookingEditModalOpen} onOpenChange={setBookingEditModalOpen}>
+      <Dialog
+        open={bookingEditModalOpen}
+        onOpenChange={setBookingEditModalOpen}
+      >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
@@ -3507,7 +4098,8 @@ function AdminDashboard() {
               Edit Patient Appointment Details
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Update booking schedule, appointment status, consultation type, and doctor notes.
+              Update booking schedule, appointment status, consultation type,
+              and doctor notes.
             </DialogDescription>
           </DialogHeader>
 
@@ -3519,7 +4111,10 @@ function AdminDashboard() {
                   required
                   value={bookingEditForm.patientName}
                   onChange={(e) =>
-                    setBookingEditForm({ ...bookingEditForm, patientName: e.target.value })
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      patientName: e.target.value,
+                    })
                   }
                   placeholder="Patient Name"
                 />
@@ -3531,7 +4126,10 @@ function AdminDashboard() {
                   required
                   value={bookingEditForm.phone}
                   onChange={(e) =>
-                    setBookingEditForm({ ...bookingEditForm, phone: e.target.value })
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      phone: e.target.value,
+                    })
                   }
                   placeholder="+92 3XX XXXXXXX"
                 />
@@ -3544,7 +4142,10 @@ function AdminDashboard() {
                 <select
                   value={bookingEditForm.clinic}
                   onChange={(e) =>
-                    setBookingEditForm({ ...bookingEditForm, clinic: e.target.value })
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      clinic: e.target.value,
+                    })
                   }
                   className="w-full rounded border border-input p-2 text-xs bg-white"
                 >
@@ -3561,7 +4162,10 @@ function AdminDashboard() {
                 <select
                   value={bookingEditForm.service}
                   onChange={(e) =>
-                    setBookingEditForm({ ...bookingEditForm, service: e.target.value })
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      service: e.target.value,
+                    })
                   }
                   className="w-full rounded border border-input p-2 text-xs bg-white"
                 >
@@ -3581,13 +4185,18 @@ function AdminDashboard() {
                   type="date"
                   value={bookingEditForm.preferredDate}
                   onChange={(e) =>
-                    setBookingEditForm({ ...bookingEditForm, preferredDate: e.target.value })
+                    setBookingEditForm({
+                      ...bookingEditForm,
+                      preferredDate: e.target.value,
+                    })
                   }
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold">Preferred Time Window</label>
+                <label className="text-xs font-bold">
+                  Preferred Time Window
+                </label>
                 <Input
                   value={bookingEditForm.preferredTimeSlot}
                   onChange={(e) =>
@@ -3635,7 +4244,9 @@ function AdminDashboard() {
                 >
                   <option value="Clinic Visit">Clinic Visit</option>
                   <option value="Home Rehab">Home Rehab</option>
-                  <option value="Online Consultation">Online Consultation</option>
+                  <option value="Online Consultation">
+                    Online Consultation
+                  </option>
                 </select>
               </div>
 
@@ -3659,24 +4270,34 @@ function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold">Patient's Stated Issue</label>
+              <label className="text-xs font-bold">
+                Patient's Stated Issue
+              </label>
               <Textarea
                 rows={2}
                 value={bookingEditForm.notes}
                 onChange={(e) =>
-                  setBookingEditForm({ ...bookingEditForm, notes: e.target.value })
+                  setBookingEditForm({
+                    ...bookingEditForm,
+                    notes: e.target.value,
+                  })
                 }
                 placeholder="Patient's reported complaint or inquiry..."
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-primary">Doctor Clinical Notes / Diagnosis</label>
+              <label className="text-xs font-bold text-primary">
+                Doctor Clinical Notes / Diagnosis
+              </label>
               <Textarea
                 rows={2}
                 value={bookingEditForm.doctorNotes}
                 onChange={(e) =>
-                  setBookingEditForm({ ...bookingEditForm, doctorNotes: e.target.value })
+                  setBookingEditForm({
+                    ...bookingEditForm,
+                    doctorNotes: e.target.value,
+                  })
                 }
                 placeholder="Doctor's notes, recommended sessions, diagnosis, follow-up..."
               />
@@ -3691,7 +4312,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] text-white"
+              >
                 Save Changes
               </Button>
             </div>
@@ -3708,7 +4333,8 @@ function AdminDashboard() {
               WhatsApp Message Assistant
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Quick 1-tap WhatsApp message templates for {selectedWaBooking?.patientName || "Patient"}.
+              Quick 1-tap WhatsApp message templates for{" "}
+              {selectedWaBooking?.patientName || "Patient"}.
             </DialogDescription>
           </DialogHeader>
 
@@ -3716,16 +4342,24 @@ function AdminDashboard() {
             <div className="mt-3 space-y-4">
               <div className="rounded bg-slate-50 p-3 text-xs border border-slate-200">
                 <div className="font-semibold text-slate-800">
-                  Patient: <span className="font-bold">{selectedWaBooking.patientName}</span> ({selectedWaBooking.phone})
+                  Patient:{" "}
+                  <span className="font-bold">
+                    {selectedWaBooking.patientName}
+                  </span>{" "}
+                  ({selectedWaBooking.phone})
                 </div>
                 <div className="text-slate-600 mt-0.5">
-                  Clinic: {selectedWaBooking.clinic} | Slot: {selectedWaBooking.preferredDate} ({selectedWaBooking.preferredTimeSlot})
+                  Clinic: {selectedWaBooking.clinic} | Slot:{" "}
+                  {selectedWaBooking.preferredDate} (
+                  {selectedWaBooking.preferredTimeSlot})
                 </div>
               </div>
 
               {/* Template Buttons */}
               <div className="space-y-1.5">
-                <div className="text-xs font-bold text-slate-700">Choose Message Template:</div>
+                <div className="text-xs font-bold text-slate-700">
+                  Choose Message Template:
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -3752,8 +4386,12 @@ function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      const clinic = (data.clinics || []).find((c) => c.name === selectedWaBooking.clinic);
-                      const mapLink = clinic?.mapsUrl || "https://maps.google.com/?q=Islamabad";
+                      const clinic = (data.clinics || []).find(
+                        (c) => c.name === selectedWaBooking.clinic,
+                      );
+                      const mapLink =
+                        clinic?.mapsUrl ||
+                        "https://maps.google.com/?q=Islamabad";
                       const msg = `Location directions for Dr. Farhan Badshah's clinic at *${selectedWaBooking.clinic}*:\nAddress: ${clinic?.address || selectedWaBooking.clinic}\nGoogle Maps: ${mapLink}`;
                       setCustomWaMessage(msg);
                     }}
@@ -3777,7 +4415,9 @@ function AdminDashboard() {
 
               {/* Editable Message Box */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Message Preview (Editable):</label>
+                <label className="text-xs font-bold text-slate-700">
+                  Message Preview (Editable):
+                </label>
                 <Textarea
                   rows={4}
                   value={customWaMessage}
@@ -3792,7 +4432,9 @@ function AdminDashboard() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => copyToClipboard(customWaMessage, "WhatsApp message")}
+                  onClick={() =>
+                    copyToClipboard(customWaMessage, "WhatsApp message")
+                  }
                   className="text-xs"
                 >
                   <Copy size={13} className="mr-1" /> Copy Text
@@ -3802,7 +4444,10 @@ function AdminDashboard() {
                   type="button"
                   size="sm"
                   onClick={() => {
-                    const cleanPhone = selectedWaBooking.phone.replace(/[^0-9]/g, "");
+                    const cleanPhone = selectedWaBooking.phone.replace(
+                      /[^0-9]/g,
+                      "",
+                    );
                     const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(customWaMessage)}`;
                     window.open(url, "_blank");
                     cms.updateBookingStatus(selectedWaBooking.id, "Confirmed");
@@ -3828,13 +4473,19 @@ function AdminDashboard() {
               Admin Credentials & Security
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Change your username and login password. Saved securely in your browser's private store.
+              Change your username and login password. Saved securely in your
+              browser's private store.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveSecuritySettings} className="mt-3 space-y-4">
+          <form
+            onSubmit={handleSaveSecuritySettings}
+            className="mt-3 space-y-4"
+          >
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">Admin Username *</label>
+              <label className="text-xs font-bold text-slate-700">
+                Admin Username *
+              </label>
               <Input
                 required
                 value={newAdminUser}
@@ -3844,7 +4495,9 @@ function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">New Password *</label>
+              <label className="text-xs font-bold text-slate-700">
+                New Password *
+              </label>
               <Input
                 type="password"
                 required
@@ -3855,7 +4508,9 @@ function AdminDashboard() {
             </div>
 
             <div className="rounded bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-900 leading-snug">
-              Tip: Remember your new credentials. You can also reset back to default (<code className="font-bold">admin / drfarhan2026</code>) at any time.
+              Tip: Remember your new credentials. You can also reset back to
+              default (<code className="font-bold">admin / drfarhan2026</code>)
+              at any time.
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row justify-between gap-2">
@@ -3876,7 +4531,11 @@ function AdminDashboard() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" size="sm" className="bg-[#2271b1] text-white">
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-[#2271b1] text-white"
+                >
                   Save Credentials
                 </Button>
               </div>
@@ -3891,27 +4550,37 @@ function AdminDashboard() {
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
               <BookOpen className="text-[#2271b1]" size={20} />
-              {editingArticleId ? "Edit Clinical Article" : "Write & Publish New Article"}
+              {editingArticleId
+                ? "Edit Clinical Article"
+                : "Write & Publish New Article"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Publish patient guides, evidence-based pain management tips, and exercise protocols. These articles are automatically integrated with Google and AI search engines via Schema.org.
+              Publish patient guides, evidence-based pain management tips, and
+              exercise protocols. These articles are automatically integrated
+              with Google and AI search engines via Schema.org.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveArticle} className="mt-3 space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">Article Title *</label>
+              <label className="text-xs font-bold text-slate-700">
+                Article Title *
+              </label>
               <Input
                 required
                 value={articleForm.title}
-                onChange={(e) => setArticleForm({ ...articleForm, title: e.target.value })}
+                onChange={(e) =>
+                  setArticleForm({ ...articleForm, title: e.target.value })
+                }
                 placeholder="e.g. 5 Sciatica Relief Exercises You Can Safely Do at Home"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Category *</label>
+                <label className="text-xs font-bold text-slate-700">
+                  Category *
+                </label>
                 <select
                   value={articleForm.category}
                   onChange={(e) =>
@@ -3924,26 +4593,36 @@ function AdminDashboard() {
                 >
                   <option value="Spine Care">Spine Care</option>
                   <option value="Sports Medicine">Sports Medicine</option>
-                  <option value="Posture & Ergonomics">Posture & Ergonomics</option>
+                  <option value="Posture & Ergonomics">
+                    Posture & Ergonomics
+                  </option>
                   <option value="Joint Health">Joint Health</option>
                   <option value="Rehabilitation">Rehabilitation</option>
                 </select>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Reading Time</label>
+                <label className="text-xs font-bold text-slate-700">
+                  Reading Time
+                </label>
                 <Input
                   value={articleForm.readTime}
-                  onChange={(e) => setArticleForm({ ...articleForm, readTime: e.target.value })}
+                  onChange={(e) =>
+                    setArticleForm({ ...articleForm, readTime: e.target.value })
+                  }
                   placeholder="e.g. 5 min read"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">Publish Date</label>
+                <label className="text-xs font-bold text-slate-700">
+                  Publish Date
+                </label>
                 <Input
                   value={articleForm.date}
-                  onChange={(e) => setArticleForm({ ...articleForm, date: e.target.value })}
+                  onChange={(e) =>
+                    setArticleForm({ ...articleForm, date: e.target.value })
+                  }
                   placeholder="e.g. Oct 14, 2026"
                 />
               </div>
@@ -3952,14 +4631,20 @@ function AdminDashboard() {
             {/* Featured toggle & URL slug */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center bg-slate-50 p-3 rounded border border-slate-200">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700">URL Slug (SEO Permalink)</label>
+                <label className="text-xs font-bold text-slate-700">
+                  URL Slug (SEO Permalink)
+                </label>
                 <Input
                   value={articleForm.slug}
-                  onChange={(e) => setArticleForm({ ...articleForm, slug: e.target.value })}
+                  onChange={(e) =>
+                    setArticleForm({ ...articleForm, slug: e.target.value })
+                  }
                   placeholder="sciatica-relief-exercises (optional)"
                   className="text-xs"
                 />
-                <span className="text-[10px] text-muted-foreground">Auto-generated from title if blank.</span>
+                <span className="text-[10px] text-muted-foreground">
+                  Auto-generated from title if blank.
+                </span>
               </div>
 
               <div className="flex items-center gap-2 pt-2 sm:pt-4">
@@ -3967,10 +4652,18 @@ function AdminDashboard() {
                   type="checkbox"
                   id="featuredArticleCheck"
                   checked={articleForm.featured}
-                  onChange={(e) => setArticleForm({ ...articleForm, featured: e.target.checked })}
+                  onChange={(e) =>
+                    setArticleForm({
+                      ...articleForm,
+                      featured: e.target.checked,
+                    })
+                  }
                   className="h-4 w-4 rounded border-gray-300 text-[#2271b1] focus:ring-[#2271b1]"
                 />
-                <label htmlFor="featuredArticleCheck" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                <label
+                  htmlFor="featuredArticleCheck"
+                  className="text-xs font-semibold text-slate-800 cursor-pointer"
+                >
                   Featured Article (Highlight on top of Blog)
                 </label>
               </div>
@@ -3978,17 +4671,23 @@ function AdminDashboard() {
 
             {/* Image URL & Preset Selection */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700">Cover Image URL</label>
+              <label className="text-xs font-bold text-slate-700">
+                Cover Image URL
+              </label>
               <Input
                 value={articleForm.imageUrl}
-                onChange={(e) => setArticleForm({ ...articleForm, imageUrl: e.target.value })}
+                onChange={(e) =>
+                  setArticleForm({ ...articleForm, imageUrl: e.target.value })
+                }
                 placeholder="https://images.unsplash.com/photo-..."
                 className="text-xs font-mono"
               />
 
               {/* Quick Preset Buttons */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-slate-500 mr-1">One-Click Presets:</span>
+                <span className="text-[11px] font-semibold text-slate-500 mr-1">
+                  One-Click Presets:
+                </span>
                 {[
                   {
                     name: "Spine & Pain",
@@ -4014,7 +4713,9 @@ function AdminDashboard() {
                   <button
                     key={preset.name}
                     type="button"
-                    onClick={() => setArticleForm({ ...articleForm, imageUrl: preset.url })}
+                    onClick={() =>
+                      setArticleForm({ ...articleForm, imageUrl: preset.url })
+                    }
                     className={`rounded border px-2 py-0.5 text-[11px] font-medium transition ${
                       articleForm.imageUrl === preset.url
                         ? "border-[#2271b1] bg-blue-50 text-[#2271b1] font-bold"
@@ -4054,28 +4755,245 @@ function AdminDashboard() {
                 required
                 rows={2}
                 value={articleForm.description}
-                onChange={(e) => setArticleForm({ ...articleForm, description: e.target.value })}
+                onChange={(e) =>
+                  setArticleForm({
+                    ...articleForm,
+                    description: e.target.value,
+                  })
+                }
                 placeholder="A compelling 2-3 sentence overview that appears on article preview cards and Google search snippets..."
                 className="text-xs leading-relaxed"
               />
             </div>
 
-            {/* Full Article Content */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">
-                Full Article Content * (Clinical Guides, Exercises, Advice)
-              </label>
-              <Textarea
-                required
-                rows={8}
-                value={articleForm.content}
-                onChange={(e) => setArticleForm({ ...articleForm, content: e.target.value })}
-                placeholder="Write full article paragraphs here. Include symptoms, anatomy, step-by-step home exercises, posture corrections, red flag warnings, and advice for scheduling a clinical consultation."
-                className="text-xs leading-relaxed font-sans"
-              />
-              <span className="text-[10px] text-muted-foreground">
-                Tip: Break sections into clear paragraphs. They will render beautifully in the patient reading modal.
-              </span>
+            {/* Full Article Content with Visual Toolbar and Live Preview */}
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <label className="text-xs font-bold text-slate-700">
+                  Full Article Content * (Clinical Guides, Exercises, Advice)
+                </label>
+
+                {/* Write vs Preview Mode Toggle */}
+                <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setArticleContentTab("write")}
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
+                      articleContentTab === "write"
+                        ? "bg-white text-slate-900 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    ✍️ Write & Format
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setArticleContentTab("preview")}
+                    className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
+                      articleContentTab === "preview"
+                        ? "bg-white text-[#2271b1] shadow-2xs font-bold"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    👁️ Live Preview
+                  </button>
+                </div>
+              </div>
+
+              {articleContentTab === "write" ? (
+                <div className="space-y-1.5">
+                  {/* Visual Formatting Toolbar */}
+                  <div className="rounded-t-lg border border-b-0 border-slate-300 bg-slate-50 p-1.5 flex flex-wrap items-center gap-1 text-xs">
+                    {/* Headings */}
+                    <div className="flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("h1")}
+                        className="px-2 py-1 font-extrabold text-slate-800 hover:bg-slate-100 rounded text-xs"
+                        title="Heading 1 (# Title)"
+                      >
+                        H1
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("h2")}
+                        className="px-2 py-1 font-extrabold text-slate-800 hover:bg-slate-100 rounded text-xs"
+                        title="Heading 2 (## Section)"
+                      >
+                        H2
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("h3")}
+                        className="px-2 py-1 font-bold text-slate-800 hover:bg-slate-100 rounded text-xs"
+                        title="Heading 3 (### Subheading)"
+                      >
+                        H3
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("h4")}
+                        className="px-2 py-1 font-bold text-slate-800 hover:bg-slate-100 rounded text-xs"
+                        title="Heading 4 (#### Sub-section)"
+                      >
+                        H4
+                      </button>
+                    </div>
+
+                    {/* Text Styling */}
+                    <div className="flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("p")}
+                        className="px-2 py-1 font-bold text-slate-700 hover:bg-slate-100 rounded text-xs"
+                        title="Paragraph (P)"
+                      >
+                        ¶ P
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("bold")}
+                        className="px-2 py-1 font-black text-slate-900 hover:bg-slate-100 rounded text-xs"
+                        title="Bold (**text**)"
+                      >
+                        B
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("italic")}
+                        className="px-2 py-1 italic font-semibold text-slate-800 hover:bg-slate-100 rounded text-xs"
+                        title="Italic (*text*)"
+                      >
+                        I
+                      </button>
+                    </div>
+
+                    {/* Lists */}
+                    <div className="flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("bullet")}
+                        className="px-2 py-1 font-medium text-slate-700 hover:bg-slate-100 rounded text-xs"
+                        title="Bullet List (• item)"
+                      >
+                        • Bullets
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("numbered")}
+                        className="px-2 py-1 font-medium text-slate-700 hover:bg-slate-100 rounded text-xs"
+                        title="Numbered Steps (1. step)"
+                      >
+                        1. Steps
+                      </button>
+                    </div>
+
+                    {/* Callouts, FAQ, Doctor */}
+                    <div className="flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("quote")}
+                        className="px-2 py-1 font-medium text-slate-700 hover:bg-slate-100 rounded text-xs"
+                        title="Clinical Tip / Callout Quote (> ...)"
+                      >
+                        “ Quote
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("faq")}
+                        className="px-2 py-1 font-semibold text-[#2271b1] hover:bg-blue-50 rounded text-xs"
+                        title="FAQ Question & Answer Block"
+                      >
+                        + FAQ Q&A
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertFormat("doctor")}
+                        className="px-2 py-1 font-semibold text-emerald-700 hover:bg-emerald-50 rounded text-xs"
+                        title="Doctor Sign-off Box"
+                      >
+                        👨‍⚕️ Sign-Off
+                      </button>
+                    </div>
+                  </div>
+
+                  <Textarea
+                    ref={contentTextareaRef}
+                    required
+                    rows={12}
+                    value={articleForm.content}
+                    onChange={(e) =>
+                      setArticleForm({
+                        ...articleForm,
+                        content: e.target.value,
+                      })
+                    }
+                    placeholder="Write your article here. Select any text and click H1, H2, Bold, or Bullets from the toolbar above to format instantly."
+                    className="rounded-t-none text-xs leading-relaxed font-mono border-slate-300 focus-visible:ring-[#2271b1]"
+                  />
+
+                  <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground pt-1 px-1">
+                    <span>
+                      💡 <strong>Quick syntax:</strong>{" "}
+                      <code className="font-mono bg-slate-100 px-1 rounded">
+                        #
+                      </code>{" "}
+                      H1 Title •{" "}
+                      <code className="font-mono bg-slate-100 px-1 rounded">
+                        ##
+                      </code>{" "}
+                      H2 Heading •{" "}
+                      <code className="font-mono bg-slate-100 px-1 rounded">
+                        ###
+                      </code>{" "}
+                      H3 Subheading •{" "}
+                      <code className="font-mono bg-slate-100 px-1 rounded">
+                        **bold**
+                      </code>{" "}
+                      •{" "}
+                      <code className="font-mono bg-slate-100 px-1 rounded">
+                        • bullet
+                      </code>
+                    </span>
+                    <span className="font-mono">
+                      {articleForm.content.length} characters
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Live Preview Mode */
+                <div className="rounded-lg border border-slate-200 bg-white p-5 max-h-[420px] overflow-y-auto space-y-4">
+                  <div className="border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2 text-xs mb-1">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-bold text-primary">
+                        {articleForm.category}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {articleForm.readTime}
+                      </span>
+                    </div>
+                    <h3 className="font-display text-xl font-bold text-slate-900">
+                      {articleForm.title || "Untitled Article"}
+                    </h3>
+                    {articleForm.description && (
+                      <p className="mt-1 text-xs text-muted-foreground italic">
+                        {articleForm.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {articleForm.content ? (
+                    <div className="pt-2">
+                      <ArticleContentRenderer content={articleForm.content} />
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center text-xs text-muted-foreground">
+                      No content written yet. Switch to the{" "}
+                      <strong>Write & Format</strong> tab to start writing.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
@@ -4087,7 +5005,11 @@ function AdminDashboard() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-[#2271b1] hover:bg-[#135e96] text-white">
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-[#2271b1] hover:bg-[#135e96] text-white"
+              >
                 <Save size={13} className="mr-1.5" />
                 {editingArticleId ? "Update Article" : "Publish Article"}
               </Button>
@@ -4109,8 +5031,12 @@ function AdminDashboard() {
               <code className="font-mono bg-slate-100 px-1 py-0.5 rounded">
                 src/data/portfolioData.ts
               </code>
-              . You can copy this snippet directly into your codebase before committing or creating a pull request to{" "}
-              <code className="font-mono text-primary font-bold">mustafaabadshah/Dr-Farhan-Badshah</code>.
+              . You can copy this snippet directly into your codebase before
+              committing or creating a pull request to{" "}
+              <code className="font-mono text-primary font-bold">
+                mustafaabadshah/Dr-Farhan-Badshah
+              </code>
+              .
             </DialogDescription>
           </DialogHeader>
 
@@ -4147,7 +5073,10 @@ function AdminDashboard() {
       </Dialog>
 
       {/* DIRECT GITHUB LIVE PUBLISH MODAL */}
-      <Dialog open={livePublishModalOpen} onOpenChange={setLivePublishModalOpen}>
+      <Dialog
+        open={livePublishModalOpen}
+        onOpenChange={setLivePublishModalOpen}
+      >
         <DialogContent className="max-w-lg rounded-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold flex items-center gap-2 text-emerald-800">
@@ -4155,7 +5084,14 @@ function AdminDashboard() {
               Publish Directly to Live Website
             </DialogTitle>
             <DialogDescription className="text-xs">
-              This commits your changes directly to the GitHub repository (<code className="font-mono font-bold text-slate-800">mustafaabadshah/Dr-Farhan-Badshah</code>) on branches <code className="font-mono font-semibold">master</code> and <code className="font-mono font-semibold">main</code>. Your live website will automatically update for all visitors!
+              This commits your changes directly to the GitHub repository (
+              <code className="font-mono font-bold text-slate-800">
+                mustafaabadshah/Dr-Farhan-Badshah
+              </code>
+              ) on branches{" "}
+              <code className="font-mono font-semibold">master</code> and{" "}
+              <code className="font-mono font-semibold">main</code>. Your live
+              website will automatically update for all visitors!
             </DialogDescription>
           </DialogHeader>
 
@@ -4173,7 +5109,11 @@ function AdminDashboard() {
                 className="font-mono text-xs"
               />
               <p className="text-[11px] text-muted-foreground leading-normal">
-                Saved securely only in your browser. Needs <code className="font-mono bg-slate-100 px-1 py-0.5 rounded font-bold">repo</code> permission.{" "}
+                Saved securely only in your browser. Needs{" "}
+                <code className="font-mono bg-slate-100 px-1 py-0.5 rounded font-bold">
+                  repo
+                </code>{" "}
+                permission.{" "}
                 <a
                   href="https://github.com/settings/tokens/new?scopes=repo&description=DocFolio+Live+CMS+Publishing"
                   target="_blank"
@@ -4186,7 +5126,9 @@ function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700">Commit Message (Optional)</label>
+              <label className="text-xs font-bold text-slate-700">
+                Commit Message (Optional)
+              </label>
               <Input
                 value={liveCommitMsg}
                 onChange={(e) => setLiveCommitMsg(e.target.value)}
@@ -4196,7 +5138,10 @@ function AdminDashboard() {
             </div>
 
             <div className="rounded bg-emerald-50 border border-emerald-200 p-3 text-[11px] text-emerald-950 leading-relaxed">
-              <strong>✨ Instant Worldwide Sync:</strong> Once published, changes are pushed directly to your repository. All website visitors and search engines will immediately see the latest updates.
+              <strong>✨ Instant Worldwide Sync:</strong> Once published,
+              changes are pushed directly to your repository. All website
+              visitors and search engines will immediately see the latest
+              updates.
             </div>
 
             <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
@@ -4240,7 +5185,8 @@ function AdminDashboard() {
             id: "bookings",
             label: "Inquiries",
             icon: Calendar,
-            count: (data.bookings || []).filter((b) => b.status === "New").length,
+            count: (data.bookings || []).filter((b) => b.status === "New")
+              .length,
           },
           { id: "clinics", label: "Clinics", icon: MapPin },
           { id: "credentials", label: "Degrees", icon: GraduationCap },

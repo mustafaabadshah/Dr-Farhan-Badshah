@@ -43,7 +43,13 @@ export function FloatingActionBar({ onOpenBooking }: FloatingActionBarProps) {
 
       {/* WhatsApp Quick Chat */}
       <a
-        href={data.contact.whatsappUrl}
+        href={
+          data.contact.whatsappUrl ||
+          `https://wa.me/${(data.contact.whatsappNumber || "923329579368").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
+            data.contact.whatsappMessage ||
+              "Hello Dr. Farhan, I would like to book an appointment.",
+          )}`
+        }
         target="_blank"
         rel="noreferrer"
         className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl shadow-[#25D366]/40 transition-transform duration-200 hover:scale-110 hover:bg-[#1ebe5d] active:scale-95"
