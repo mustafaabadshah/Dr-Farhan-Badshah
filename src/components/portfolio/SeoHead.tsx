@@ -53,8 +53,8 @@ export function SeoHead() {
     setMeta("property", "og:type", "profile");
     setMeta("property", "og:title", seo.ogTitle || title);
     setMeta("property", "og:description", seo.ogDescription || seo.metaDescription);
-    setMeta("property", "og:url", seo.canonicalUrl || "https://drfarhanbadshah.com/");
-    setMeta("property", "og:image", seo.ogImage?.startsWith("http") ? seo.ogImage : `https://drfarhanbadshah.com${seo.ogImage || "/doc-farhan.png"}`);
+    setMeta("property", "og:url", seo.canonicalUrl || "https://farhanbadshah.com/");
+    setMeta("property", "og:image", seo.ogImage?.startsWith("http") ? seo.ogImage : `https://farhanbadshah.com${seo.ogImage || "/doc-farhan.png"}`);
     setMeta("property", "og:site_name", `${hero.name} Physiotherapy`);
     setMeta("property", "og:locale", "en_PK");
 
@@ -62,7 +62,7 @@ export function SeoHead() {
     setMeta("name", "twitter:card", seo.twitterCard || "summary_large_image");
     setMeta("name", "twitter:title", seo.ogTitle || title);
     setMeta("name", "twitter:description", seo.ogDescription || seo.metaDescription);
-    setMeta("name", "twitter:image", seo.ogImage?.startsWith("http") ? seo.ogImage : `https://drfarhanbadshah.com${seo.ogImage || "/doc-farhan.png"}`);
+    setMeta("name", "twitter:image", seo.ogImage?.startsWith("http") ? seo.ogImage : `https://farhanbadshah.com${seo.ogImage || "/doc-farhan.png"}`);
     setMeta("name", "twitter:site", seo.twitterHandle || "@thephysioclinic03");
     setMeta("name", "twitter:creator", seo.twitterHandle || "@thephysioclinic03");
 
@@ -78,10 +78,10 @@ export function SeoHead() {
     "@graph": [
       {
         "@type": "Physician",
-        "@id": "https://drfarhanbadshah.com/#physician",
+        "@id": "https://farhanbadshah.com/#physician",
         "name": hero.name,
-        "url": seo.canonicalUrl || "https://drfarhanbadshah.com/",
-        "image": "https://drfarhanbadshah.com/doc-farhan.png",
+        "url": seo.canonicalUrl || "https://farhanbadshah.com/",
+        "image": "https://farhanbadshah.com/doc-farhan.png",
         "telephone": contact.phone,
         "email": contact.email,
         "medicalSpecialty": [
@@ -135,7 +135,7 @@ export function SeoHead() {
         .sort((a, b) => (a.openHour ?? 0) - (b.openHour ?? 0))
         .map((c, idx) => ({
         "@type": "MedicalClinic",
-        "@id": `https://drfarhanbadshah.com/#clinic-${idx + 1}`,
+        "@id": `https://farhanbadshah.com/#clinic-${idx + 1}`,
         "name": `${hero.name} @ ${c.name}`,
         "medicalSpecialty": "Physiotherapy",
         "telephone": c.phone || contact.phone,
@@ -158,11 +158,11 @@ export function SeoHead() {
       })),
       {
         "@type": "MedicalBusiness",
-        "@id": "https://drfarhanbadshah.com/#practice",
+        "@id": "https://farhanbadshah.com/#practice",
         "name": `${hero.name} — Physiotherapy & Rehabilitation Islamabad`,
         "description": seo.metaDescription,
         "telephone": contact.phone,
-        "url": seo.canonicalUrl || "https://drfarhanbadshah.com/",
+        "url": seo.canonicalUrl || "https://farhanbadshah.com/",
         "areaServed": {
           "@type": "AdministrativeArea",
           "name": "Islamabad & Rawalpindi, Pakistan"
@@ -175,7 +175,7 @@ export function SeoHead() {
       },
       {
         "@type": "FAQPage",
-        "@id": "https://drfarhanbadshah.com/#faq",
+        "@id": "https://farhanbadshah.com/#faq",
         "mainEntity": faqs.map((f) => ({
           "@type": "Question",
           "name": f.question,
@@ -187,12 +187,12 @@ export function SeoHead() {
       },
       ...(data.articles || []).map((art) => ({
         "@type": "BlogPosting",
-        "@id": `https://drfarhanbadshah.com/#article-${art.id}`,
+        "@id": `https://farhanbadshah.com/#article-${art.id}`,
         "headline": art.title,
         "description": art.description,
         "image": art.imageUrl.startsWith("http")
           ? art.imageUrl
-          : `https://drfarhanbadshah.com${art.imageUrl.startsWith("/") ? "" : "/"}${art.imageUrl}`,
+          : `https://farhanbadshah.com${art.imageUrl.startsWith("/") ? "" : "/"}${art.imageUrl}`,
         "author": {
           "@type": "Person",
           "name": hero.name,

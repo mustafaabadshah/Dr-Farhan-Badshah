@@ -1,5 +1,5 @@
 # Robots.txt for Dr. Farhan Badshah — Physiotherapist in Islamabad
-# Website: https://drfarhanbadshah.com/
+# Website: https://farhanbadshah.com/
 
 User-agent: *
 Allow: /
@@ -40,4 +40,4 @@ Allow: /
 Disallow: /admin
 
 # Sitemap & LLM summary
-Sitemap: https://drfarhanbadshah.com/sitemap.xml
+Sitemap: https://farhanbadshah.com/sitemap.xml

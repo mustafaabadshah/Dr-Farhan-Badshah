@@ -55,7 +55,7 @@ function ArticleDetailPage() {
   const currentUrl =
     typeof window !== "undefined"
       ? window.location.href
-      : `https://drfarhanbadshah.com/articles/${slug}`;
+      : `https://farhanbadshah.com/articles/${slug}`;
 
   // Update Document Head & Social Meta Tags dynamically
   useEffect(() => {
@@ -102,7 +102,7 @@ function ArticleDetailPage() {
     setMeta("name", "author", hero.name || "Dr. Farhan Badshah");
 
     // Canonical link
-    const canonical = `https://drfarhanbadshah.com/articles/${article.slug || slug}`;
+    const canonical = `https://farhanbadshah.com/articles/${article.slug || slug}`;
     setLink("canonical", canonical);
 
     // Open Graph
@@ -139,13 +139,13 @@ function ArticleDetailPage() {
       author: {
         "@type": "Physician",
         name: "Dr. Farhan Badshah",
-        url: "https://drfarhanbadshah.com/",
+        url: "https://farhanbadshah.com/",
         medicalSpecialty: "Physiotherapy & Sports Rehabilitation",
       },
       publisher: {
         "@type": "MedicalBusiness",
         name: "Dr. Farhan Badshah Physiotherapy Clinic Islamabad",
-        url: "https://drfarhanbadshah.com/",
+        url: "https://farhanbadshah.com/",
       },
       datePublished: article.date,
     });

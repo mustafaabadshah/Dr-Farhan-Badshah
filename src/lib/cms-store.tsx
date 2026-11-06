@@ -193,7 +193,7 @@ const DEFAULT_SEO: SEOConfig = {
     "Dr. Farhan Badshah (DPT, MS Sports Rehab) is an internationally licensed Consultant Physiotherapist in Islamabad (CORU Ireland, SCFHS KSA, AHPC Pakistan). Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
   keywords:
     "physiotherapist Islamabad, best physiotherapist in Islamabad, Dr Farhan Badshah, sports injury rehabilitation Islamabad, Shahida Khaliq Hospital physiotherapist, Ali Medical Center physiotherapist, General Practice Hospital physiotherapist, back pain specialist Islamabad, sciatica treatment Islamabad, stroke rehabilitation Islamabad, orthopedic physiotherapy Islamabad, physical therapist Pakistan, DPT Islamabad, pain management Islamabad",
-  canonicalUrl: "https://drfarhanbadshah.com/",
+  canonicalUrl: "https://farhanbadshah.com/",
   author: "Dr. Farhan Badshah",
   ogTitle:
     "Dr. Farhan Badshah | Best Physiotherapist in Islamabad | Sports & MSK Specialist",

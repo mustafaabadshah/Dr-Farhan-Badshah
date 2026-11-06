@@ -1545,7 +1545,7 @@ function AdminDashboard() {
                       D
                     </span>
                     <span className="truncate">
-                      https://drfarhanbadshah.com
+                      https://farhanbadshah.com
                     </span>
                   </div>
                   <div className="mt-1 text-lg text-[#1a0dab] font-medium hover:underline cursor-pointer line-clamp-1">

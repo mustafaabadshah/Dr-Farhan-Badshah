@@ -112,7 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Evidence-based physiotherapy and rehabilitation in Islamabad. Clinics at Ali Medical Center (F-8), Shahida Khaliq Hospital (G-8/4), and General Practice Hospital (Blue Area).",
       },
       { property: "og:type", content: "profile" },
-      { property: "og:url", content: "https://drfarhanbadshah.com/" },
+      { property: "og:url", content: "https://farhanbadshah.com/" },
       { property: "og:image", content: "/doc-farhan.png" },
       { property: "og:site_name", content: "Dr. Farhan Badshah Physiotherapy" },
       { name: "twitter:card", content: "summary_large_image" },
