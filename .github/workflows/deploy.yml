@@ -45,6 +45,7 @@ jobs:
           fi
           git commit -m "Automated deployment: Update CMS data"
           git push origin master
+          git push origin master:main
 
       - name: Notify
         if: failure()
